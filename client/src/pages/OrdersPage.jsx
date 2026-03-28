@@ -1,0 +1,233 @@
+import { useContext, useState, useEffect } from 'react'
+import { AuthContext } from '../App'
+import { ClipboardList, ShoppingBag, Clock, QrCode, MapPin, Store, XCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import toaster from 'react-hot-toast'
+
+function OrdersPage() {
+    const { token, user } = useContext(AuthContext)
+    const [orders, setOrders] = useState([])
+    const navigate = useNavigate()
+    const [loading, setLoading] = useState(true)
+
+    const isMerchant = user?.role === 'MERCHANT'
+
+    useEffect(() => {
+        if (token) {
+            fetchOrders()
+        }
+    }, [token, isMerchant])
+
+    async function fetchOrders() {
+        try {
+            const endpoint = isMerchant ? '/api/orders/merchant' : '/api/orders/my'
+            const res = await fetch(endpoint, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            if (res.ok) {
+                const data = await res.json()
+                setOrders(data.orders)
+            }
+        } catch (err) {
+            console.error('Fetch orders error:', err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function handleOrderStatus(orderId, action) {
+        if (!window.confirm("Amaliyotni tasdiqlaysizmi?")) return;
+        try {
+            const res = await fetch(`/api/orders/${orderId}/${action}`, {
+                method: 'PUT',
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (res.ok) {
+                toaster.success(data.message)
+                const newStatus = action === 'accept' ? 'ACCEPTED' :
+                    action === 'reject' ? 'REJECTED' :
+                        action === 'receive' ? 'COMPLETED' :
+                            action === 'cancel' ? 'CANCELLED' : 'PENDING';
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
+            } else {
+                toaster.error(data.error)
+            }
+        } catch (err) {
+            toaster.error("Server bilan xatolik")
+        }
+    }
+
+    if (loading && token) {
+        return <div className="loading"><div className="spinner"></div> Yuklanmoqda...</div>
+    }
+
+    if (!token) {
+        return (
+            <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                <div className="card" style={{ padding: '40px 24px', textAlign: 'center', maxWidth: 320, background: 'white' }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--active-primary-bg)', color: 'var(--active-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                        <ShoppingBag size={32} />
+                    </div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: 12, color: 'var(--text-primary)' }}>Buyurtmalar tarixi</h2>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 32, lineHeight: 1.6 }}>
+                        Xaridlaringizni kuzatish va yangi buyurtmalar berish uchun tizimga kiring.
+                    </p>
+                    <button
+                        className="btn btn-primary btn-full"
+                        style={{ height: 48, borderRadius: 12, fontWeight: 700 }}
+                        onClick={() => window.open('https://t.me/asrauz_bot', '_blank')}
+                    >
+                        @asrauz_bot orqali kirish
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    if (orders.length === 0) {
+        return (
+            <div className="section">
+                <div className="empty-state" style={{ marginTop: 80 }}>
+                    <div className="empty-state-icon" style={{ background: '#f3f4f6', color: 'var(--text-muted)', opacity: 1, width: 80, height: 80 }}>
+                        <ClipboardList size={40} />
+                    </div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>Hozircha buyurtmalar yo'q</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 24 }}>
+                        {isMerchant ? 'Mijozlardan hali buyurtmalar kelmadi.' : 'Platformada birinchi xaridingizni amalga oshiring!'}
+                    </p>
+                    {!isMerchant && (
+                        <button className="btn btn-outline" style={{ borderRadius: 12 }} onClick={() => navigate('/home')}>
+                            Asosiy sahibaga o'tish
+                        </button>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div style={{ paddingBottom: 100 }}>
+            <div className="section" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
+                    {isMerchant ? 'Kelgan buyurtmalar' : 'Mening buyurtmalarim'}
+                </h2>
+                {orders.map(order => (
+                    <div key={order.id} className="card" style={{ background: 'white', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ background: 'var(--active-primary-bg)', color: 'var(--active-primary)', padding: 8, borderRadius: 10 }}>
+                                    {isMerchant ? <Store size={18} /> : <Clock size={18} />}
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Buyurtma #{order.id.toString().slice(-4)}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(order.created_at).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            <div className={`status-badge status-${order.status.toLowerCase()}`} style={{ fontSize: '0.7rem', padding: '4px 10px' }}>
+                                {order.status === 'PENDING' ? 'Kutilmoqda' :
+                                    order.status === 'ACCEPTED' ? 'Tayyorlanmoqda' :
+                                        order.status === 'COMPLETED' ? 'Qabul qilindi' :
+                                            order.status === 'REJECTED' ? 'Rad etildi' :
+                                                order.status === 'CANCELLED' ? 'Bekor qilindi' : order.status}
+                            </div>
+                        </div>
+
+                        {/* Customer Info for Merchants */}
+                        {isMerchant && order.customer && (
+                            <div style={{ background: '#f0f9ff', padding: '12px', borderRadius: 12, marginBottom: 4 }}>
+                                <div style={{ fontSize: '0.65rem', color: '#0369a1', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Xaridor</div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0c4a6e' }}>{order.customer.full_name}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#0369a1' }}>{order.customer.phone}</div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {JSON.parse(order.items).map((item, idx) => (
+                                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600 }}>
+                                        <span>{item.quantity}x {item.name}</span>
+                                        <span>{(item.price * item.quantity).toLocaleString()} so'm</span>
+                                    </div>
+                                    {!isMerchant && (
+                                        <>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                <Store size={14} /> <span>{item.merchant_name}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                <MapPin size={14} /> <span>{item.merchant_address}</span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px', borderRadius: 12, marginTop: 4 }}>
+                            <div>
+                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>Umumiy</div>
+                                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--active-primary)' }}>{order.total.toLocaleString()} so'm</div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                    {isMerchant ? 'Mijoz Kodi' : 'Referal Kod'}
+                                </div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: 2 }}>{order.code}</div>
+                            </div>
+                        </div>
+
+                        {!isMerchant && order.status === 'PENDING' && (
+                            <button
+                                onClick={() => handleOrderStatus(order.id, 'cancel')}
+                                style={{
+                                    marginTop: 4, width: '100%', padding: '12px', borderRadius: 12, border: '1px solid #fee2e2',
+                                    background: '#fef2f2', color: '#dc2626', fontWeight: 700, fontSize: '0.85rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, cursor: 'pointer'
+                                }}
+                            >
+                                <XCircle size={16} /> Buyurtmani bekor qilish
+                            </button>
+                        )}
+                        {!isMerchant && order.status === 'ACCEPTED' && (
+                            <button
+                                onClick={() => handleOrderStatus(order.id, 'receive')}
+                                style={{
+                                    marginTop: 4, width: '100%', padding: '12px', borderRadius: 12, border: 'none',
+                                    background: '#22c55e', color: 'white', fontWeight: 700, fontSize: '0.85rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Qabul qildim
+                            </button>
+                        )}
+                        {isMerchant && order.status === 'PENDING' && (
+                            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                <button
+                                    onClick={() => handleOrderStatus(order.id, 'accept')}
+                                    style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#22c55e', color: 'white', fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                    Qabul qilish
+                                </button>
+                                <button
+                                    onClick={() => handleOrderStatus(order.id, 'reject')}
+                                    style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                    Rad etish
+                                </button>
+                            </div>
+                        )}
+
+                        {!isMerchant && order.status !== 'CANCELLED' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--active-primary-bg)', padding: '10px 12px', borderRadius: 10, border: '1px dashed var(--active-primary)', marginTop: order.status === 'PENDING' ? 4 : 0 }}>
+                                <QrCode size={16} color="var(--active-primary)" />
+                                <span>Mahsulotni olishda ushbu kodni sotuvchiga ayting.</span>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export default OrdersPage

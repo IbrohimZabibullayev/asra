@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  tg_id           String   @unique
+  full_name       String
+  username        String?
+  phone           String?
+  photo_url       String?
+  referral_code   String   @unique
+  role            String   @default("CUSTOMER")
+  is_verified     Boolean  @default(false)
+  status          String   @default("ACTIVE")
+  merchant_status String   @default("NONE")
+  region          String?  @default("Toshkent")
+  district        String?
+  store_name      String?
+  store_description String?
+  store_logo      String?
+  store_address   String?
+  business_type   String?
+  inn             String?
+  company_name    String?
+  responsible_person String?
+  referral_code_expires_at DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  price           Float
+  discount        Float    @default(0)
+  image_url       String?
+  merchant_id     String
+  merchant_name   String?
+  merchant_address String?
+  region          String?  @default("Toshkent")
+  unit            String   @default("dona")
+  stock           Float    @default(1)
+  is_active       Boolean  @default(true)
+  is_moderated    Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  customer_id String
+  merchant_id String
+  status      String   @default("PENDING")
+  total       Float
+  items       String
+  code        String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  user_id     String
+  title       String
+  message     String
+  type        String   @default("INFO") // INFO, ORDER, SYSTEM
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
+}

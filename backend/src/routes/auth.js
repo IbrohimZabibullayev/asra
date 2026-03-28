@@ -1,0 +1,109 @@
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
+const { authMiddleware } = require('../middleware/auth');
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+// POST /api/verify — Match referral code, verify user, return JWT
+router.post('/verify', async (req, res) => {
+    try {
+        const { code } = req.body;
+        console.log(`[Verify] Attempting code: ${code}`);
+
+        if (!code || code.length !== 6) {
+            return res.status(400).json({ error: 'Noto\'g\'ri kod formati' });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { referral_code: code }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Kod topilmadi' });
+        }
+
+        if (user.status === 'BLOCKED') {
+            return res.status(403).json({ error: 'Sizning hisobingiz admin tomonidan bloklangan' });
+        }
+
+        // Check expiry
+        if (user.referral_code_expires_at && new Date() > new Date(user.referral_code_expires_at)) {
+            return res.status(400).json({ error: 'Kodning amal qilish muddati tugagan (24 soat). Iltimos, botdan yangi kod oling.' });
+        }
+
+        if (user.is_verified) {
+            // Already verified — still issue a token
+            const token = jwt.sign(
+                { userId: user.id, tgId: user.tg_id },
+                process.env.JWT_SECRET,
+                { expiresIn: '30d' }
+            );
+            return res.json({ token, user: sanitizeUser(user), message: 'Siz allaqachon tasdiqlangansiz' });
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: { is_verified: true, status: 'ACTIVE' }
+        });
+
+        const token = jwt.sign(
+            { userId: updatedUser.id, tgId: updatedUser.tg_id },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+
+        res.json({ token, user: sanitizeUser(updatedUser), message: 'Muvaffaqiyatli tasdiqlandi!' });
+    } catch (err) {
+        console.error('Verify error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
+// POST /api/switch-role — Toggle between CUSTOMER and MERCHANT
+router.post('/switch-role', authMiddleware, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.userId } });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+        }
+
+        if (user.merchant_status !== 'APPROVED') {
+            return res.status(403).json({ error: 'Siz hali sotuvchi sifatida tasdiqlanmagansiz' });
+        }
+
+        const newRole = user.role === 'CUSTOMER' ? 'MERCHANT' : 'CUSTOMER';
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: { role: newRole }
+        });
+
+        res.json({ user: sanitizeUser(updatedUser), message: `${newRole === 'MERCHANT' ? 'Sotuvchi' : 'Mijoz'} rejimiga o'tildi` });
+    } catch (err) {
+        console.error('Switch role error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
+function sanitizeUser(user) {
+    return {
+        id: user.id,
+        tg_id: user.tg_id,
+        full_name: user.full_name,
+        username: user.username,
+        phone: user.phone,
+        photo_url: user.photo_url,
+        role: user.role,
+        is_verified: user.is_verified,
+        status: user.status,
+        merchant_status: user.merchant_status,
+        store_name: user.store_name,
+        store_description: user.store_description,
+        store_address: user.store_address,
+        referral_code_expires_at: user.referral_code_expires_at
+    };
+}
+
+module.exports = router;
