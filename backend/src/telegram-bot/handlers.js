@@ -11,7 +11,7 @@ function generateCode() {
 }
 
 function setupHandlers(bot) {
-    const WEBAPP_URL = process.env.WEBAPP_URL || 'https://asra-client.vercel.app';
+    const WEBAPP_URL = process.env.WEBAPP_URL || 'https://asra-lyart.vercel.app/';
 
     // /start command
     bot.onText(/\/start/, async (msg) => {
