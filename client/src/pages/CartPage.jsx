@@ -45,9 +45,6 @@ function CartPage() {
     if (cartItems.length === 0) {
         return (
             <div>
-                <div className="header" style={{ padding: '12px 20px' }}>
-                    <h1>Savat</h1>
-                </div>
                 <div className="empty-state" style={{ marginTop: 80 }}>
                     <div className="empty-state-icon" style={{ background: 'var(--active-primary-bg)', color: 'var(--active-primary)', opacity: 1 }}>
                         <ShoppingBag size={40} />

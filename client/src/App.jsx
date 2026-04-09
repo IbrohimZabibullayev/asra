@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast'
 import BottomNav from './components/BottomNav'
 import Header from './components/Header'
 import { CartProvider } from './context/CartContext'
+import TermsModal from './components/TermsModal'
 
 export const AuthContext = createContext(null)
 export const ThemeContext = createContext(null)
@@ -73,6 +74,14 @@ function App() {
         setUser(null)
     }
 
+    const termsKey = user ? `terms_accepted_${user.tg_id}_${user.role}` : null
+    const showTermsModal = user && !localStorage.getItem(termsKey)
+
+    function handleAcceptTerms() {
+        localStorage.setItem(termsKey, '1')
+        setUser({ ...user }) // force re-render
+    }
+
     if (loading) {
         return (
             <div className="loading-screen">
@@ -108,6 +117,13 @@ function App() {
                                 </Routes>
                             </div>
                             <BottomNav />
+                            {showTermsModal && (
+                                <TermsModal
+                                    role={user.role}
+                                    onAccept={handleAcceptTerms}
+                                    onCancel={handleLogout}
+                                />
+                            )}
                         </div>
                     </BrowserRouter>
                 </ThemeContext.Provider>

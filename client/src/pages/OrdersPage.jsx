@@ -65,7 +65,7 @@ function OrdersPage() {
     if (!token) {
         return (
             <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-                <div className="card" style={{ padding: '40px 24px', textAlign: 'center', maxWidth: 320, background: 'white' }}>
+                <div style={{ padding: '40px 24px', textAlign: 'center', maxWidth: 320 }}>
                     <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--active-primary-bg)', color: 'var(--active-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                         <ShoppingBag size={32} />
                     </div>

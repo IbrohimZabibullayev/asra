@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import PendingStores from './pages/PendingStores'
 import UserManagement from './pages/UserManagement'
+import ProductsPage from './pages/ProductsPage'
 
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -21,6 +22,7 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/pending" element={<PendingStores />} />
                         <Route path="/users" element={<UserManagement />} />
+                        <Route path="/products" element={<ProductsPage />} />
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                 </main>

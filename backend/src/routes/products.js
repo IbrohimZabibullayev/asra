@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
 
         const where = {
             is_active: true,
+            is_moderated: false,
             merchant_id: { in: approvedIds }
         };
 
@@ -116,6 +117,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         let product = await prisma.product.findUnique({ where: { id: parseInt(req.params.id) } });
         if (!product) return res.status(404).json({ error: 'Mahsulot topilmadi' });
         if (product.merchant_id !== user.tg_id) return res.status(403).json({ error: 'Ruxsat yo\'q' });
+        if (product.is_moderated) return res.status(403).json({ error: 'Bu mahsulot qoidalarni buzganligi sababli bloklangan, izoh uchun telegram botingizni tekshiring.' });
 
         const { name, price, current_price, image_url, unit, stock, is_active } = req.body;
 

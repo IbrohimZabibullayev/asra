@@ -74,7 +74,7 @@ function ProfilePage() {
         return (
             <div>
                 <div style={{ padding: '40px 20px', display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'center' }}>
-                    <div className="card" style={{ padding: '40px 24px', textAlign: 'center', background: 'white', maxWidth: 400 }}>
+                    <div style={{ padding: '40px 24px', textAlign: 'center', maxWidth: 400 }}>
                         <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#f3f4f6', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                             <User size={40} />
                         </div>

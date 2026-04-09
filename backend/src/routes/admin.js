@@ -17,6 +17,18 @@ router.get('/pending-stores', async (req, res) => {
         res.status(500).json({ error: 'Server xatosi' });
     }
 });
+// GET /api/admin/products — List all products across the platform
+router.get('/products', async (req, res) => {
+    try {
+        const products = await prisma.product.findMany({
+            orderBy: { created_at: 'desc' }
+        });
+        res.json({ products });
+    } catch (err) {
+        console.error('Admin products error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
 
 // GET /api/admin/users — List all users
 router.get('/users', async (req, res) => {
@@ -217,6 +229,44 @@ router.patch('/users/:id/status', async (req, res) => {
         res.json({ user: sanitizeUser(updatedUser), message: `Foydalanuvchi holati ${status === 'ACTIVE' ? 'faollashtirildi' : 'bloklandi'}` });
     } catch (err) {
         console.error('Status update error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
+// PATCH /api/admin/products/:id/block — Block a product
+router.patch('/products/:id/block', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+
+        if (!reason) {
+            return res.status(400).json({ error: 'Maxsulotni bloklash sababi ko\'rsatilishi shart (izoh)' });
+        }
+
+        const product = await prisma.product.findUnique({ where: { id: parseInt(id) } });
+
+        if (!product) {
+            return res.status(404).json({ error: 'Mahsulot topilmadi' });
+        }
+
+        const updatedProduct = await prisma.product.update({
+            where: { id: parseInt(id) },
+            data: { is_moderated: true, is_active: false }
+        });
+
+        const botToken = process.env.BOT_TOKEN;
+        if (botToken) {
+            const tgMessage = `🚨 *DIQQAT: MAHSULOT BLOKLANDI!* 🚨\n\nHurmatli sotuvchi, sizning tizimga yuklagan mahsulotingiz moderasatordan o'tmadi.\n\n📦 *Mahsulot nomi:* ${product.name}\n💬 *Bloklanish sababi:* ${reason}\n\nIltimos, mahsulotni to'g'irlab qayta urinib ko'ring yoki qo'llab-quvvatlash bo'limi bilan bog'laning.`;
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: product.merchant_id, text: tgMessage, parse_mode: 'Markdown' })
+            }).catch(console.error);
+        }
+
+        res.json({ product: updatedProduct, message: 'Mahsulot muvaffaqiyatli bloklandi' });
+    } catch (err) {
+        console.error('Block product error:', err);
         res.status(500).json({ error: 'Server xatosi' });
     }
 });

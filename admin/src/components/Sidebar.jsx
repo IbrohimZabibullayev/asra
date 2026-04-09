@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { BarChart3, Clock, Users, Leaf, Shield, Moon, Sun } from 'lucide-react'
+import { BarChart3, Clock, Users, Leaf, Shield, Moon, Sun, Package } from 'lucide-react'
 
 function Sidebar({ activePage, onNavigate }) {
     const navigate = useNavigate()
@@ -24,6 +24,7 @@ function Sidebar({ activePage, onNavigate }) {
         { key: 'dashboard', path: '/dashboard', icon: BarChart3, label: 'Dashboard' },
         { key: 'pending', path: '/pending', icon: Clock, label: 'Kutilayotgan arizalar', badge: true },
         { key: 'users', path: '/users', icon: Users, label: 'Foydalanuvchilar' },
+        { key: 'products', path: '/products', icon: Package, label: 'Mahsulotlar' },
     ]
 
     function handleClick(item) {

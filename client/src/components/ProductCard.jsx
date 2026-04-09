@@ -1,4 +1,4 @@
-import { Store, MapPin, ShoppingBag, Plus, Minus } from 'lucide-react'
+import { Store, MapPin, ShoppingBag, Plus, Minus, Clock } from 'lucide-react'
 import { useContext } from 'react'
 import { CartContext } from '../context/CartContext'
 
@@ -41,6 +41,16 @@ function ProductCard({ product, distance }) {
                             )}
                         </span>
                     </div>
+                    {product.created_at && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                            <Clock size={10} strokeWidth={2} />
+                            <span>
+                                {new Date(product.created_at).toLocaleDateString() === new Date().toLocaleDateString()
+                                    ? `Bugun, ${new Date(product.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                    : `${new Date(product.created_at).toLocaleDateString('uz-UZ')} ${new Date(product.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-light)', paddingTop: 8 }}>
