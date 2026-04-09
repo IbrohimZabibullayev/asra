@@ -51,7 +51,14 @@ function NotificationsPage() {
         }
     }
 
-    if (loading) return <div className="loading"><div className="spinner"></div> Yuklanmoqda...</div>
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16 }}>
+                <div className="spinner"></div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>Yuklanmoqda...</div>
+            </div>
+        )
+    }
 
     return (
         <div style={{ paddingBottom: 100 }}>

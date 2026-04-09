@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Avtomatik environment aniqlash: Local kompyuterda localhost:3001 ga, Vercelda esa Railway'ga ulanadi
+const isProdUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const API_BASE_URL = isProdUrl ? 'https://asra-production.up.railway.app' : 'http://localhost:3001';
 
 /**
  * Normalizes API URL ensuring it's absolute in production

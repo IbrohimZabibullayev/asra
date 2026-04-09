@@ -93,9 +93,9 @@ function App() {
 
     if (loading) {
         return (
-            <div className="loading-screen">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 16 }}>
                 <div className="spinner"></div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Yuklanmoqda...</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Yuklanmoqda...</p>
             </div>
         )
     }

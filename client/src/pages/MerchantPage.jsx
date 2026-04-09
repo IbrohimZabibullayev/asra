@@ -64,7 +64,10 @@ function MerchantPage() {
             <div style={{ padding: '0 20px' }}>
 
                 {loading ? (
-                    <div className="spinner" style={{ margin: '40px auto' }}></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', gap: 16 }}>
+                        <div className="spinner"></div>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>Yuklanmoqda...</div>
+                    </div>
                 ) : products.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {products.map(p => (

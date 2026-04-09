@@ -63,7 +63,7 @@ router.post('/', authMiddleware, async (req, res) => {
                     // Send Telegram Alert to Merchant
                     const botToken = process.env.BOT_TOKEN;
                     if (botToken) {
-                        const tgMessage = `🎉 *Yangi Buyurtma Kuryerda!* 🎉\n\n👤 Mijoz: _${customer.full_name}_\n📞 Tel: ${customer.phone}\n💳 Summa: ${merchantTotal.toLocaleString()} so'm\n\nIltimos, ilovangizga kirib buyurtmani tezda tayyorlang!`;
+                        const tgMessage = `🎉 *Yangi Buyurtma!* 🎉\n\n👤 Mijoz: _${customer.full_name}_\n📞 Tel: ${customer.phone}\n💳 Summa: ${merchantTotal.toLocaleString()} so'm\n\nIltimos, ilovangizga kirib buyurtmani imkon qadar tezroq tayyorlang!`;
                         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },

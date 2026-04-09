@@ -10,6 +10,7 @@ function OrdersPage() {
     const [orders, setOrders] = useState([])
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, orderId: null })
 
     const isMerchant = user?.role === 'MERCHANT'
 
@@ -36,8 +37,15 @@ function OrdersPage() {
         }
     }
 
-    async function handleOrderStatus(orderId, action) {
-        if (!window.confirm("Amaliyotni tasdiqlaysizmi?")) return;
+    function requestOrderStatusChange(orderId, action) {
+        setConfirmModal({ isOpen: true, orderId, action })
+    }
+
+    async function handleOrderStatus() {
+        const { orderId, action } = confirmModal;
+        setConfirmModal({ isOpen: false, orderId: null, action: null });
+        if (!orderId) return;
+
         try {
             const res = await fetch(getApiUrl(`/api/orders/${orderId}/${action}`), {
                 method: 'PUT',
@@ -60,7 +68,12 @@ function OrdersPage() {
     }
 
     if (loading && token) {
-        return <div className="loading"><div className="spinner"></div> Yuklanmoqda...</div>
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16 }}>
+                <div className="spinner"></div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>Yuklanmoqda...</div>
+            </div>
+        )
     }
 
     if (!token) {
@@ -179,7 +192,7 @@ function OrdersPage() {
 
                         {!isMerchant && order.status === 'PENDING' && (
                             <button
-                                onClick={() => handleOrderStatus(order.id, 'cancel')}
+                                onClick={() => requestOrderStatusChange(order.id, 'cancel')}
                                 className="btn btn-outline btn-full"
                                 style={{ color: '#dc2626', background: '#fef2f2', borderColor: '#fee2e2' }}
                             >
@@ -188,7 +201,7 @@ function OrdersPage() {
                         )}
                         {!isMerchant && order.status === 'ACCEPTED' && (
                             <button
-                                onClick={() => handleOrderStatus(order.id, 'receive')}
+                                onClick={() => requestOrderStatusChange(order.id, 'receive')}
                                 className="btn btn-primary btn-full"
                                 style={{ background: '#22c55e' }}
                             >
@@ -198,14 +211,14 @@ function OrdersPage() {
                         {isMerchant && order.status === 'PENDING' && (
                             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                                 <button
-                                    onClick={() => handleOrderStatus(order.id, 'accept')}
+                                    onClick={() => requestOrderStatusChange(order.id, 'accept')}
                                     className="btn btn-primary"
                                     style={{ flex: 1, background: '#22c55e' }}
                                 >
                                     Qabul qilish
                                 </button>
                                 <button
-                                    onClick={() => handleOrderStatus(order.id, 'reject')}
+                                    onClick={() => requestOrderStatusChange(order.id, 'reject')}
                                     className="btn btn-primary"
                                     style={{ flex: 1, background: '#ef4444' }}
                                 >
@@ -223,6 +236,35 @@ function OrdersPage() {
                     </div>
                 ))}
             </div>
+
+            {confirmModal.isOpen && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                    <div className="card fade-in" style={{ background: 'white', padding: 24, width: '100%', maxWidth: 320, textAlign: 'center', borderRadius: 20 }}>
+                        <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                            <ClipboardList size={32} />
+                        </div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: 8, color: 'var(--text-primary)' }}>Amaliyotni tasdiqlaysizmi?</h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 24 }}>Buyurtma holatini o'zgartirish bo'yicha so'rov yuborilmoqda.</p>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <button
+                                className="btn btn-outline"
+                                style={{ height: 48, borderRadius: 12, fontWeight: 700 }}
+                                onClick={() => setConfirmModal({ isOpen: false, orderId: null, action: null })}
+                            >
+                                Bekor qilish
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                style={{ height: 48, borderRadius: 12, fontWeight: 700 }}
+                                onClick={handleOrderStatus}
+                            >
+                                Ha, tasdiqlayman
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
