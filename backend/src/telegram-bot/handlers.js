@@ -129,6 +129,7 @@ function setupHandlers(bot) {
         const chatId = msg.chat.id;
         const state = userStates.get(chatId);
 
+        try {
             // Handle text keyboard "🔑 Kod olish"
             if (msg.text === '🔑 Kod olish') {
                 const tgId = String(msg.from.id);
