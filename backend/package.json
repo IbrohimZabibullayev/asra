@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "node src/index.js",
-    "start": "node src/index.js",
+    "start": "npx prisma migrate deploy && node src/index.js",
     "postinstall": "prisma generate",
     "build": "prisma generate",
     "db:generate": "npx prisma generate",
@@ -19,7 +19,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "node-telegram-bot-api": "^0.67.0"
   },
   "devDependencies": {
     "prisma": "^5.22.0"

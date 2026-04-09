@@ -11,6 +11,7 @@ const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const uploadRoutes = require('./routes/upload');
 const { startScheduler } = require('./scheduler');
+const { initBot } = require('./telegram-bot');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -42,6 +43,9 @@ app.get('/api/health', (req, res) => {
 
 // Start background scheduler
 startScheduler();
+
+// Start Telegram Bot
+initBot();
 
 app.listen(PORT, () => {
     console.log(`🚀 ASRA Backend server running on http://localhost:${PORT}`);
