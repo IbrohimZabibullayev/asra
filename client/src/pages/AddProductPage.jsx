@@ -115,7 +115,7 @@ function AddProductPage() {
                             </div>
                         )}
                     </div>
-                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', background: 'var(--active-primary-bg)', color: 'var(--active-primary)', borderRadius: 12, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>
+                    <label className="btn btn-primary" style={{ display: 'inline-flex', padding: '12px 24px', cursor: 'pointer', fontWeight: 700 }}>
                         <Upload size={16} /> Rasm tanlash
                         <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
                     </label>
@@ -151,13 +151,8 @@ function AddProductPage() {
                                     key={u.key}
                                     type="button"
                                     onClick={() => setFormData({ ...formData, unit: u.key, stock: '' })}
-                                    style={{
-                                        flex: 1, padding: '12px', borderRadius: 12,
-                                        border: `2px solid ${formData.unit === u.key ? 'var(--active-primary)' : 'var(--border-light)'}`,
-                                        background: formData.unit === u.key ? 'var(--active-primary-bg)' : 'white',
-                                        fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
-                                        color: formData.unit === u.key ? 'var(--active-primary)' : 'var(--text-secondary)'
-                                    }}
+                                    className={`btn ${formData.unit === u.key ? 'btn-primary' : 'btn-outline'}`}
+                                    style={{ flex: 1 }}
                                 >
                                     {u.label}
                                 </button>
@@ -186,8 +181,8 @@ function AddProductPage() {
 
                 <button
                     type="submit"
-                    className="btn btn-primary"
-                    style={{ height: 56, borderRadius: 16, fontSize: '1rem', fontWeight: 800, gap: 10, marginTop: 12 }}
+                    className="btn btn-primary btn-full btn-lg"
+                    style={{ marginTop: 12 }}
                     disabled={loading}
                 >
                     {loading ? 'Saqlanmoqda...' : 'Mahsulotni yuklash'} <Plus size={20} />

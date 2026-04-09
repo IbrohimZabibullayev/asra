@@ -77,7 +77,6 @@ function VerifyPage({ onVerify }) {
                     type="submit"
                     className="btn btn-primary btn-full btn-lg"
                     disabled={loading || code.length !== 6}
-                    style={{ opacity: loading || code.length !== 6 ? 0.6 : 1 }}
                 >
                     {loading ? (
                         <>

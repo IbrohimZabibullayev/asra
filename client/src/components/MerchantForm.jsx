@@ -142,7 +142,7 @@ function MerchantForm({ token, onClose, onApplied }) {
                             <input className="input" type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+998" />
                         </div>
 
-                        <button onClick={nextStep} className="btn btn-primary btn-full" style={{ height: 50, borderRadius: 12, marginTop: 10 }}>
+                        <button onClick={nextStep} className="btn btn-primary btn-full btn-lg">
                             Davom etish <ChevronRight size={18} />
                         </button>
                     </div>
@@ -152,14 +152,12 @@ function MerchantForm({ token, onClose, onApplied }) {
                             <label><Building2 size={14} /> Biznes turi</label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                                 <button
-                                    className={`btn ${formData.business_type === 'YTT' ? 'btn-primary' : 'btn-outline'}`}
+                                    className={`btn btn-sm ${formData.business_type === 'YTT' ? 'btn-primary' : 'btn-outline'}`}
                                     onClick={() => setFormData({ ...formData, business_type: 'YTT' })}
-                                    style={{ height: 40, padding: 0, fontSize: '0.85rem' }}
                                 >YTT</button>
                                 <button
-                                    className={`btn ${formData.business_type === 'MChJ' ? 'btn-primary' : 'btn-outline'}`}
+                                    className={`btn btn-sm ${formData.business_type === 'MChJ' ? 'btn-primary' : 'btn-outline'}`}
                                     onClick={() => setFormData({ ...formData, business_type: 'MChJ' })}
-                                    style={{ height: 40, padding: 0, fontSize: '0.85rem' }}
                                 >MChJ</button>
                             </div>
                         </div>
@@ -195,10 +193,10 @@ function MerchantForm({ token, onClose, onApplied }) {
                         {error && <div className="verify-error">{error}</div>}
 
                         <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-                            <button onClick={prevStep} className="btn btn-outline" style={{ flex: 1, height: 50, borderRadius: 12 }}>
+                            <button onClick={prevStep} className="btn btn-outline btn-lg" style={{ flex: 1 }}>
                                 <ChevronLeft size={18} /> Orqaga
                             </button>
-                            <button onClick={handleSubmit} className="btn btn-primary" style={{ flex: 2, height: 50, borderRadius: 12 }} disabled={loading}>
+                            <button onClick={handleSubmit} className="btn btn-primary btn-lg" style={{ flex: 2 }} disabled={loading}>
                                 {loading ? 'Yuborilmoqda...' : <><Send size={18} /> So'rov yuborish</>}
                             </button>
                         </div>

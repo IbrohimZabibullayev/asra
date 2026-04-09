@@ -119,8 +119,7 @@ function CartPage() {
                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>{totalPrice.toLocaleString()} so'm</span>
                 </div>
                 <button
-                    className="btn btn-primary btn-full"
-                    style={{ height: 52, borderRadius: 16, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    className="btn btn-primary btn-full btn-lg"
                     onClick={handleCheckout}
                 >
                     <CreditCard size={20} /> Rasmiylashtirish <ChevronRight size={18} />

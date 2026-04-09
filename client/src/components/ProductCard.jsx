@@ -85,8 +85,7 @@ function ProductCard({ product, distance }) {
                         </div>
                     ) : (
                         <button
-                            className="btn btn-primary"
-                            style={{ width: 32, height: 32, padding: 0, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            className="btn btn-primary btn-icon-sm"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 addToCart(product)

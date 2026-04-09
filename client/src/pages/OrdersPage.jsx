@@ -97,8 +97,8 @@ function OrdersPage() {
                         {isMerchant ? 'Mijozlardan hali buyurtmalar kelmadi.' : 'Platformada birinchi xaridingizni amalga oshiring!'}
                     </p>
                     {!isMerchant && (
-                        <button className="btn btn-outline" style={{ borderRadius: 12 }} onClick={() => navigate('/home')}>
-                            Asosiy sahibaga o'tish
+                        <button className="btn btn-outline btn-lg" onClick={() => navigate('/home')}>
+                            Asosiy sahifaga o'tish
                         </button>
                     )}
                 </div>
@@ -179,11 +179,8 @@ function OrdersPage() {
                         {!isMerchant && order.status === 'PENDING' && (
                             <button
                                 onClick={() => handleOrderStatus(order.id, 'cancel')}
-                                style={{
-                                    marginTop: 4, width: '100%', padding: '12px', borderRadius: 12, border: '1px solid #fee2e2',
-                                    background: '#fef2f2', color: '#dc2626', fontWeight: 700, fontSize: '0.85rem',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, cursor: 'pointer'
-                                }}
+                                className="btn btn-outline btn-full"
+                                style={{ color: '#dc2626', background: '#fef2f2', borderColor: '#fee2e2' }}
                             >
                                 <XCircle size={16} /> Buyurtmani bekor qilish
                             </button>
@@ -191,11 +188,8 @@ function OrdersPage() {
                         {!isMerchant && order.status === 'ACCEPTED' && (
                             <button
                                 onClick={() => handleOrderStatus(order.id, 'receive')}
-                                style={{
-                                    marginTop: 4, width: '100%', padding: '12px', borderRadius: 12, border: 'none',
-                                    background: '#22c55e', color: 'white', fontWeight: 700, fontSize: '0.85rem',
-                                    cursor: 'pointer'
-                                }}
+                                className="btn btn-primary btn-full"
+                                style={{ background: '#22c55e' }}
                             >
                                 Qabul qildim
                             </button>
@@ -204,13 +198,15 @@ function OrdersPage() {
                             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                                 <button
                                     onClick={() => handleOrderStatus(order.id, 'accept')}
-                                    style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#22c55e', color: 'white', fontWeight: 700, cursor: 'pointer' }}
+                                    className="btn btn-primary"
+                                    style={{ flex: 1, background: '#22c55e' }}
                                 >
                                     Qabul qilish
                                 </button>
                                 <button
                                     onClick={() => handleOrderStatus(order.id, 'reject')}
-                                    style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}
+                                    className="btn btn-primary"
+                                    style={{ flex: 1, background: '#ef4444' }}
                                 >
                                     Rad etish
                                 </button>

@@ -39,7 +39,7 @@ function MerchantPage() {
             </div>
 
             <div style={{ padding: '0 20px', marginBottom: 20 }}>
-                <button onClick={() => navigate('/add-product')} className="btn btn-primary" style={{ padding: '12px 16px', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8, width: '100%', justifyContent: 'center' }}>
+                <button onClick={() => navigate('/add-product')} className="btn btn-primary btn-full">
                     <Plus size={18} /> Mahsulot Qo'shish
                 </button>
             </div>

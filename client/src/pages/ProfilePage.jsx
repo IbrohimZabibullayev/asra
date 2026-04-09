@@ -83,8 +83,7 @@ function ProfilePage() {
                             Profil sozlamalari, buyurtmalar tarixi va sotuvchi rejimi uchun tizimga kiring.
                         </p>
                         <button
-                            className="btn btn-primary btn-full"
-                            style={{ height: 52, borderRadius: 16, fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                            className="btn btn-primary btn-full btn-lg"
                             onClick={() => navigate('/auth-choice')}
                         >
                             <LogIn size={20} /> Tizimga kirish
@@ -146,7 +145,7 @@ function ProfilePage() {
                             <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Mahsulotlar</div>
                             <div style={{ color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: 900 }}>{stats.productsCount} dona</div>
                         </div>
-                        <button className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: 12, fontSize: '0.85rem' }} onClick={() => navigate('/add-product')}>
+                        <button className="btn btn-primary btn-sm" onClick={() => navigate('/add-product')}>
                             <Plus size={16} /> Qo'shish
                         </button>
                     </div>
@@ -195,8 +194,8 @@ function ProfilePage() {
                             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 8 }}>Chiqish</h3>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 24 }}>Dashboarddan chiqmoqchimisiz?</p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <button className="btn btn-outline" style={{ height: 44, borderRadius: 12 }} onClick={() => setShowLogoutModal(false)}>Yo'q</button>
-                                <button className="btn btn-primary" style={{ height: 44, borderRadius: 12, background: '#dc2626', borderColor: '#dc2626' }} onClick={logout}>Ha</button>
+                                <button className="btn btn-outline" onClick={() => setShowLogoutModal(false)}>Yo'q</button>
+                                <button className="btn btn-primary" style={{ background: '#dc2626', borderColor: '#dc2626' }} onClick={logout}>Ha</button>
                             </div>
                         </div>
                     </div>
@@ -268,8 +267,8 @@ function ProfilePage() {
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 8 }}>Chiqish</h3>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 24 }}>Rostdan akkauntdan chiqmoqchimisiz?</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                            <button className="btn btn-outline" style={{ height: 44, borderRadius: 12 }} onClick={() => setShowLogoutModal(false)}>Yo'q</button>
-                            <button className="btn btn-primary" style={{ height: 44, borderRadius: 12, background: '#dc2626', borderColor: '#dc2626' }} onClick={logout}>Ha</button>
+                            <button className="btn btn-outline" onClick={() => setShowLogoutModal(false)}>Yo'q</button>
+                            <button className="btn btn-primary" style={{ background: '#dc2626', borderColor: '#dc2626' }} onClick={logout}>Ha</button>
                         </div>
                     </div>
                 </div>

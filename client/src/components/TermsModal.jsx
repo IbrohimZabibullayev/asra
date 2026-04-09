@@ -66,12 +66,11 @@ export default function TermsModal({ role, onAccept, onCancel }) {
                     </label>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <button className="btn btn-outline" onClick={onCancel} style={{ borderRadius: 12, height: 48 }}>Orqaga qaytish</button>
+                        <button className="btn btn-outline btn-lg" onClick={onCancel}>Orqaga qaytish</button>
                         <button 
-                            className="btn btn-primary" 
+                            className="btn btn-primary btn-lg" 
                             onClick={onAccept} 
                             disabled={!checked}
-                            style={{ borderRadius: 12, opacity: checked ? 1 : 0.4, cursor: checked ? 'pointer' : 'not-allowed', height: 48 }}
                         >
                             Davom etish
                         </button>

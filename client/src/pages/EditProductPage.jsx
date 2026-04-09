@@ -146,7 +146,7 @@ function EditProductPage() {
                             </div>
                         )}
                     </div>
-                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', background: 'var(--active-primary-bg)', color: 'var(--active-primary)', borderRadius: 12, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>
+                    <label className="btn btn-primary" style={{ display: 'inline-flex', padding: '12px 24px', cursor: 'pointer', fontWeight: 700 }}>
                         <Upload size={16} /> Rasmni o'zgartirish
                         <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
                     </label>
@@ -180,13 +180,8 @@ function EditProductPage() {
                                     key={u.key}
                                     type="button"
                                     onClick={() => setFormData({ ...formData, unit: u.key, stock: '' })}
-                                    style={{
-                                        flex: 1, padding: '12px', borderRadius: 12,
-                                        border: `2px solid ${formData.unit === u.key ? 'var(--active-primary)' : 'var(--border-light)'}`,
-                                        background: formData.unit === u.key ? 'var(--active-primary-bg)' : 'white',
-                                        fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
-                                        color: formData.unit === u.key ? 'var(--active-primary)' : 'var(--text-secondary)'
-                                    }}
+                                    className={`btn ${formData.unit === u.key ? 'btn-primary' : 'btn-outline'}`}
+                                    style={{ flex: 1 }}
                                 >
                                     {u.label}
                                 </button>
@@ -211,13 +206,7 @@ function EditProductPage() {
                             <button
                                 type="button"
                                 onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
-                                style={{
-                                    width: '100%', height: '48.5px', padding: '0 16px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                                    border: `1px solid ${formData.is_active ? 'var(--primary)' : 'var(--border-light)'}`,
-                                    background: formData.is_active ? 'var(--primary-bg)' : '#f1f5f9',
-                                    color: formData.is_active ? 'var(--primary)' : 'var(--text-muted)',
-                                    fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer'
-                                }}
+                                className={`btn btn-full ${formData.is_active ? 'btn-primary' : 'btn-outline'}`}
                             >
                                 {formData.is_active ? <><Check size={18} /> Sotuvda</> : 'Zaxirada'}
                             </button>
@@ -227,8 +216,8 @@ function EditProductPage() {
 
                 <button
                     type="submit"
-                    className="btn btn-primary"
-                    style={{ height: 56, borderRadius: 16, fontSize: '1rem', fontWeight: 800, gap: 10, marginTop: 12 }}
+                    className="btn btn-primary btn-full btn-lg"
+                    style={{ marginTop: 12 }}
                     disabled={loading}
                 >
                     {loading ? 'Saqlanmoqda...' : 'O\'zgarishlarni Saqlash'} <Check size={20} />
