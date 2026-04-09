@@ -101,6 +101,63 @@ a {
   color: inherit;
 }
 
+/* ============================================
+   SPLASH SCREEN
+   ============================================ */
+.splash-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-primary);
+  z-index: 10000;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+}
+
+.splash-container.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-text {
+  display: flex;
+  gap: 12px;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 6rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.splash-letter {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(10px);
+  animation: letter-fly-in 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+}
+
+.splash-letter:nth-child(1) { transform: translate(-150px, -150px) rotate(-45deg); animation-delay: 0.1s; }
+.splash-letter:nth-child(2) { transform: translate(150px, -150px) rotate(45deg); animation-delay: 0.2s; }
+.splash-letter:nth-child(3) { transform: translate(-150px, 150px) rotate(-135deg); animation-delay: 0.3s; }
+.splash-letter:nth-child(4) { transform: translate(150px, 150px) rotate(135deg); animation-delay: 0.4s; }
+
+@keyframes letter-fly-in {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(0, 0) rotate(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .splash-text {
+    font-size: 4rem;
+    gap: 8px;
+  }
+}
+
 button {
   cursor: pointer;
   border: none;

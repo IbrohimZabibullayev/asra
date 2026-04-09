@@ -11,7 +11,7 @@ function generateCode() {
 }
 
 function setupHandlers(bot) {
-    const WEBAPP_URL = process.env.WEBAPP_URL || 'https://asra-lyart.vercel.app/';
+    const WEBAPP_URL = process.env.WEBAPP_URL || 'https://asra-lyart.vercel.app';
 
     // /start command
     bot.onText(/\/start/, async (msg) => {
@@ -79,7 +79,8 @@ function setupHandlers(bot) {
             });
         } catch (err) {
             console.error('Bot start error:', err);
-            bot.sendMessage(chatId, '❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+            // Faqat bir marta xato yuborish uchun tekshiramiz
+            bot.sendMessage(chatId, `❌ Xatolik yuz berdi: ${err.message || 'Noma\'lum xato'}`);
         }
     });
 
@@ -96,17 +97,18 @@ function setupHandlers(bot) {
                 // Direct Prisma update
                 await prisma.user.upsert({
                     where: { tg_id: tgId },
-                    update: { referral_code, referral_code_expires_at: new Date(Date.now() + 10 * 60 * 1000) }, // 10 min
+                    update: { referral_code, referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000) }, // 2 min
                     create: {
                         tg_id: tgId,
                         full_name: callbackQuery.from.first_name || 'Foydalanuvchi',
                         referral_code,
-                        role: 'CUSTOMER'
+                        role: 'CUSTOMER',
+                        referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000)
                     }
                 });
 
                 await bot.answerCallbackQuery(callbackQuery.id);
-                await bot.sendMessage(chatId, `🔑 Sizning yangi tasdiqlash kodingiz: \`${referral_code}\`\n\nUni nusxalab oling va platformaga kiriting.`, {
+                await bot.sendMessage(chatId, `🔑 Sizning yangi tasdiqlash kodingiz: \`${referral_code}\`\n\n⚠️ *Ushbu kod 2 daqiqa davomida amal qiladi.* Keyin yaroqsiz bo'ladi. Uni nusxalab oling va platformaga kiriting.`, {
                     parse_mode: 'Markdown'
                 });
             } catch (err) {
@@ -148,7 +150,7 @@ function setupHandlers(bot) {
                 const userData = {
                     ...state.data,
                     referral_code,
-                    referral_code_expires_at: new Date(Date.now() + 10 * 60 * 1000)
+                    referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000)
                 };
 
                 // Direct Prisma registration
@@ -174,7 +176,7 @@ function setupHandlers(bot) {
                 });
 
                 await bot.sendMessage(chatId,
-                    `✅ *Ro'yxatdan o'tish muvaffaqiyatli!*\n\n📍 Viloyat: *${userData.region}*\n📞 Telefon: \`${userData.phone}\`\n\n🔑 Tasdiqlash kodingiz: \`${referral_code}\`\n\nNusxalab oling va platformaga kiriting.`,
+                    `✅ *Ro'yxatdan o'tish muvaffaqiyatli!*\n\n📍 Viloyat: *${userData.region}*\n📞 Telefon: \`${userData.phone}\`\n\n🔑 Tasdiqlash kodingiz: \`${referral_code}\`\n\n⚠️ *Diqqat:* Ushbu kod 2 daqiqa davomida amal qiladi. Nusxalab oling va platformaga kiriting.`,
                     {
                         parse_mode: 'Markdown',
                         reply_markup: { remove_keyboard: true }

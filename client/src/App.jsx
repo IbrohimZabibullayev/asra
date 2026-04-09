@@ -24,8 +24,16 @@ function App() {
     const [token, setToken] = useState(localStorage.getItem('asra_token'))
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [splashVisible, setSplashVisible] = useState(true)
 
     const theme = user?.role === 'MERCHANT' ? 'merchant' : 'customer'
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSplashVisible(false)
+        }, 2200)
+        return () => clearTimeout(timer)
+    }, [])
 
     useEffect(() => {
         if (token) {
@@ -93,6 +101,14 @@ function App() {
 
     return (
         <AuthContext.Provider value={{ token, user, setUser: handleSwitchRole, logout: handleLogout, fetchUser, setToken: handleVerify }}>
+            <div className={`splash-container ${!splashVisible ? 'hidden' : ''}`}>
+                <div className="splash-text">
+                    <span className="splash-letter">A</span>
+                    <span className="splash-letter">S</span>
+                    <span className="splash-letter">R</span>
+                    <span className="splash-letter">A</span>
+                </div>
+            </div>
             <Toaster position="top-center" toastOptions={{ duration: 3000, style: { fontSize: '0.9rem', borderRadius: '12px' } }} />
             <CartProvider>
                 <ThemeContext.Provider value={theme}>

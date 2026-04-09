@@ -30,7 +30,7 @@ router.post('/verify', async (req, res) => {
 
         // Check expiry
         if (user.referral_code_expires_at && new Date() > new Date(user.referral_code_expires_at)) {
-            return res.status(400).json({ error: 'Kodning amal qilish muddati tugagan (24 soat). Iltimos, botdan yangi kod oling.' });
+            return res.status(400).json({ error: 'Kodning amal qilish muddati tugagan (2 daqiqa). Iltimos, botdan yangi kod oling.' });
         }
 
         if (user.is_verified) {
