@@ -15,11 +15,20 @@ router.post('/', authMiddleware, async (req, res) => {
 
         const customer = await prisma.user.findUnique({ where: { id: req.userId } });
 
-        // We'll create one order per merchant represented in the cart, or a single order with multiple items.
-        // For simplicity and matching the existing UI, let's group by merchant if possible, 
-        // but the current schema has one merchant_id per order. 
-        // Let's create multiple orders if there are multiple merchants.
+        // 1. Check stock for ALL items first to prevent partial orders
+        for (const item of items) {
+            const product = await prisma.product.findUnique({ where: { id: parseInt(item.id) } });
+            if (!product) {
+                return res.status(404).json({ error: `Mahsulot topilmadi: ${item.name}` });
+            }
+            if (!product.is_active || product.stock < item.quantity) {
+                return res.status(400).json({ 
+                    error: `Kechirasiz, "${item.name}" mahsulotidan omborda yetarli miqdorda qolmagan (Mavjud: ${product.stock} ${product.unit}).` 
+                });
+            }
+        }
 
+        // We'll create one order per merchant represented in the cart
         const merchants = [...new Set(items.map(item => item.merchant_id))];
         const orders = [];
 
@@ -34,6 +43,20 @@ router.post('/', authMiddleware, async (req, res) => {
                 const price = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
                 return acc + (price * item.quantity);
             }, 0);
+
+            // 2. Decrement stock for each item and deactivate if it reaches 0
+            for (const item of merchantItems) {
+                const product = await prisma.product.findUnique({ where: { id: parseInt(item.id) } });
+                const newStock = Math.max(0, product.stock - item.quantity);
+                
+                await prisma.product.update({
+                    where: { id: parseInt(item.id) },
+                    data: { 
+                        stock: newStock,
+                        is_active: newStock > 0 // Automatically deactivate if stock hits 0
+                    }
+                });
+            }
 
             const orderCode = Math.floor(100000 + Math.random() * 900000).toString();
             const order = await prisma.order.create({

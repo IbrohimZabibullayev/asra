@@ -734,6 +734,17 @@ select {
   color: #dc2626;
 }
 
+.status-finished {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+}
+
+.status-disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
 /* ============================================
    VERIFY SCREEN
    ============================================ */

@@ -84,7 +84,13 @@ function MerchantPage() {
                                     <p style={{ fontSize: '0.8rem', color: 'var(--active-primary)', fontWeight: 700 }}>{p.price.toLocaleString()} so'm</p>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <span className="status-badge status-active">Sotuvda</span>
+                                    {p.stock <= 0 ? (
+                                        <span className="status-badge status-finished">Tugagan</span>
+                                    ) : p.is_active ? (
+                                        <span className="status-badge status-active">Sotuvda</span>
+                                    ) : (
+                                        <span className="status-badge status-disabled">Noaktiv</span>
+                                    )}
                                 </div>
                             </div>
                         ))}

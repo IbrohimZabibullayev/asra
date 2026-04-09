@@ -20,7 +20,8 @@ router.get('/', async (req, res) => {
         const where = {
             is_active: true,
             is_moderated: false,
-            merchant_id: { in: approvedIds }
+            merchant_id: { in: approvedIds },
+            stock: { gt: 0 }
         };
 
         if (region) {
@@ -67,6 +68,7 @@ router.post('/', authMiddleware, async (req, res) => {
                 discount: discount,
                 unit: unit || 'dona',
                 stock: stock ? parseFloat(stock) : 1,
+                is_active: stock ? parseFloat(stock) > 0 : true,
                 image_url: image_url || null,
                 merchant_id: user.tg_id,
                 merchant_name: user.store_name || user.full_name,
@@ -127,6 +129,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
             ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
             : 0;
 
+        const updatedStock = stock !== undefined ? parseFloat(stock) : product.stock;
+        const updatedIsActive = is_active !== undefined ? is_active : (updatedStock > 0);
+
         product = await prisma.product.update({
             where: { id: parseInt(req.params.id) },
             data: {
@@ -134,9 +139,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
                 price: originalPrice,
                 discount: discount,
                 unit: unit || product.unit,
-                stock: stock !== undefined ? parseFloat(stock) : product.stock,
+                stock: updatedStock,
                 image_url: image_url !== undefined ? image_url : product.image_url,
-                is_active: is_active !== undefined ? is_active : product.is_active
+                is_active: updatedIsActive
             }
         });
 
