@@ -17,12 +17,12 @@ function ProductCard({ product, distance }) {
 
     return (
         <div className="product-card" style={{ position: 'relative' }}>
-            <img src={imageUrl} alt={product.name} className="product-card-image" style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block' }} />
+            <img src={imageUrl} alt={product.name} className="product-card-image" style={{ width: '100%', height: '160px', objectFit: 'cover', display: 'block' }} />
             {product.discount > 0 && (
-                <span className="discount-badge">-{product.discount}%</span>
+                <span className="discount-badge">-{Math.round(product.discount)}%</span>
             )}
-            <div className="product-card-body" style={{ padding: '10px' }}>
-                <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: 2, height: '2.4em', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.2 }}>
+            <div className="product-card-body" style={{ padding: '14px' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: 0, height: '2.6em', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>
                     {product.name}
                 </h3>
 
@@ -31,14 +31,14 @@ function ProductCard({ product, distance }) {
                         <Store size={10} strokeWidth={2} />
                         <span style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.merchant_name || 'Sotuvchi'}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                        <MapPin size={10} strokeWidth={2} />
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <MapPin size={12} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} />
+                        <span style={{ lineHeight: 1.4 }}>
                             {product.merchant_address || 'Manzil'}
                             {distance && (
-                                <b style={{ color: 'var(--active-primary)', marginLeft: 4 }}>
+                                <span style={{ color: 'var(--active-primary)', fontWeight: 700, marginLeft: 4 }}>
                                     ({distance.toFixed(1)} km)
-                                </b>
+                                </span>
                             )}
                         </span>
                     </div>

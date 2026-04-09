@@ -191,7 +191,11 @@ function UserManagement() {
                                         <MapPin size={14} color="var(--primary)" />
                                         <span style={{ fontWeight: 600 }}>{user.region}</span>
                                     </div>
-                                    {user.district && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 20 }}>{user.district}</div>}
+                                    {(user.district || user.store_address) && (
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 20, maxWidth: 200 }}>
+                                            {[user.district, user.store_address].filter(Boolean).join(', ')}
+                                        </div>
+                                    )}
                                 </td>
                                 <td>
                                     <span className={user.role === 'MERCHANT' ? 'badge badge-warning' : 'badge badge-primary'} style={{ fontSize: '0.65rem' }}>

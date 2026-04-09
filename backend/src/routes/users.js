@@ -163,6 +163,21 @@ router.post('/apply-merchant', async (req, res) => {
             }
         });
 
+        // Sync address to products
+        try {
+            const formattedAddress = [updatedUser.region, updatedUser.district, updatedUser.store_address].filter(Boolean).join(', ') || 'Manzil kiritilmagan';
+            await prisma.product.updateMany({
+                where: { merchant_id: updatedUser.tg_id },
+                data: {
+                    merchant_address: formattedAddress,
+                    merchant_name: updatedUser.store_name || updatedUser.full_name,
+                    region: updatedUser.region || 'Toshkent'
+                }
+            });
+        } catch (syncErr) {
+            console.error('Sync products address error:', syncErr);
+        }
+
         res.json({
             user: sanitizeUser(updatedUser),
             token: newlyVerifiedToken,

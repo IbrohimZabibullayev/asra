@@ -56,7 +56,7 @@ router.post('/', authMiddleware, async (req, res) => {
         const originalPrice = parseFloat(price);
         const currentPrice = parseFloat(current_price);
         const discount = originalPrice > 0 && originalPrice > currentPrice
-            ? ((originalPrice - currentPrice) / originalPrice) * 100
+            ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
             : 0;
 
         const product = await prisma.product.create({
@@ -70,7 +70,7 @@ router.post('/', authMiddleware, async (req, res) => {
                 image_url: image_url || null,
                 merchant_id: user.tg_id,
                 merchant_name: user.store_name || user.full_name,
-                merchant_address: user.store_address || 'Manzil kiritilmagan',
+                merchant_address: [user.region, user.district, user.store_address].filter(Boolean).join(', ') || 'Manzil kiritilmagan',
                 region: user.region || 'Toshkent'
             }
         });
@@ -124,7 +124,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const originalPrice = parseFloat(price || product.price);
         const currentPrice = parseFloat(current_price || product.price);
         const discount = originalPrice > 0 && originalPrice > currentPrice
-            ? ((originalPrice - currentPrice) / originalPrice) * 100
+            ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
             : 0;
 
         product = await prisma.product.update({

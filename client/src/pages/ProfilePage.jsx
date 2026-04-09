@@ -126,7 +126,9 @@ function ProfilePage() {
                         {user.store_logo ? <img src={getImageUrl(user.store_logo)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Store size={40} color="var(--active-primary)" />}
                     </div>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: 4 }}>{user.store_name}</h2>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 12 }}>{user.region}, {user.district}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 12 }}>
+                        {[user.region, user.district, user.store_address].filter(Boolean).join(', ')}
+                    </p>
                     {user.merchant_status === 'APPROVED' ? (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: '#dcfce7', color: '#15803d', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
                             <ShieldCheck size={14} /> Tasdiqlangan do'kon

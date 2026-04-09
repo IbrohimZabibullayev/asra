@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 const { authMiddleware } = require('../middleware/auth');
 
@@ -57,6 +58,74 @@ router.post('/verify', async (req, res) => {
         res.json({ token, user: sanitizeUser(updatedUser), message: 'Muvaffaqiyatli tasdiqlandi!' });
     } catch (err) {
         console.error('Verify error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
+// POST /api/auth/telegram — Log in with Telegram Mini App data
+router.post('/auth/telegram', async (req, res) => {
+    try {
+        const { initData } = req.body;
+        if (!initData) return res.status(400).json({ error: 'Ma\'lumotlar topilmadi' });
+
+        const BOT_TOKEN = process.env.BOT_TOKEN;
+        if (!BOT_TOKEN) return res.status(500).json({ error: 'Server sozlamalari xatosi' });
+
+        // 1. Verify Telegram signature
+        const urlParams = new URLSearchParams(initData);
+        const hash = urlParams.get('hash');
+        urlParams.delete('hash');
+        urlParams.sort();
+
+        let dataCheckString = '';
+        for (const [key, value] of urlParams.entries()) {
+            dataCheckString += `${key}=${value}\n`;
+        }
+        dataCheckString = dataCheckString.slice(0, -1);
+
+        const secretKey = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
+        const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+
+        if (calculatedHash !== hash) {
+            return res.status(401).json({ error: 'Telegram autentifikatsiyasi xatosi' });
+        }
+
+        // 2. Parse user data
+        const userDataString = urlParams.get('user');
+        if (!userDataString) return res.status(400).json({ error: 'Foydalanuvchi ma\'lumotlari topilmadi' });
+        const tgUser = JSON.parse(userDataString);
+        const tgId = String(tgUser.id);
+
+        // 3. Find or create user
+        let user = await prisma.user.findUnique({ where: { tg_id: tgId } });
+
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    tg_id: tgId,
+                    full_name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Telegram Foydalanuvchisi',
+                    username: tgUser.username || null,
+                    is_verified: true,
+                    status: 'ACTIVE',
+                    referral_code: Math.floor(100000 + Math.random() * 900000).toString()
+                }
+            });
+        }
+
+        if (user.status === 'BLOCKED') {
+            return res.status(403).json({ error: 'Sizning hisobingiz bloklangan' });
+        }
+
+        // 4. Issue token
+        const token = jwt.sign(
+            { userId: user.id, tgId: user.tg_id },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+
+        res.json({ token, user: sanitizeUser(user) });
+    } catch (err) {
+        console.error('Telegram auth error:', err);
         res.status(500).json({ error: 'Server xatosi' });
     }
 });

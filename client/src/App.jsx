@@ -40,9 +40,33 @@ function App() {
         if (token) {
             fetchUser()
         } else {
-            setLoading(false)
+            // Check for Telegram Auto-login
+            const tg = window.Telegram?.WebApp;
+            if (tg?.initData && !token) {
+                autoLoginTelegram(tg.initData);
+            } else {
+                setLoading(false);
+            }
         }
     }, [token])
+
+    async function autoLoginTelegram(initData) {
+        try {
+            const res = await fetch(getApiUrl('/api/auth/telegram'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                handleVerify(data.token, data.user);
+            }
+        } catch (err) {
+            console.error('Telegram auto-login failed:', err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)

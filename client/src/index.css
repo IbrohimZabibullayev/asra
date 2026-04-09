@@ -332,20 +332,24 @@ select {
 }
 
 .product-card-body {
-  padding: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .product-card-body h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .product-card-body p {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .product-price {
@@ -590,8 +594,8 @@ select {
 }
 
 .scroll-row .product-card {
-  min-width: 160px;
-  max-width: 160px;
+  min-width: 200px;
+  max-width: 200px;
   flex-shrink: 0;
 }
 
@@ -599,7 +603,7 @@ select {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 16px;
   padding: 0 4px;
 }
 
