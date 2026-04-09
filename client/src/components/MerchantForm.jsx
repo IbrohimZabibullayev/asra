@@ -142,7 +142,11 @@ function MerchantForm({ token, onClose, onApplied }) {
                             <input className="input" type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+998" />
                         </div>
 
-                        <button onClick={nextStep} className="btn btn-primary btn-full btn-lg">
+                        <button 
+                            onClick={nextStep} 
+                            className="btn btn-primary btn-full btn-lg"
+                            disabled={!formData.store_name || !formData.store_address || !formData.phone || !formData.district}
+                        >
                             Davom etish <ChevronRight size={18} />
                         </button>
                     </div>

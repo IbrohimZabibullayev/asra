@@ -117,6 +117,7 @@ router.post('/apply-merchant', async (req, res) => {
             }
 
             if (user.referral_code_expires_at && new Date() > new Date(user.referral_code_expires_at)) {
+                console.warn(`[ApplyMerchant] Expired code: ${verification_code}`);
                 return res.status(400).json({ error: 'Kodning amal qilish muddati tugagan. Botdan yangi kod oling.' });
             }
 
@@ -139,6 +140,7 @@ router.post('/apply-merchant', async (req, res) => {
         }
 
         if (!store_name || !store_address) {
+            console.warn(`[ApplyMerchant] Validation failed: store_name=${store_name}, store_address=${store_address}`);
             return res.status(400).json({ error: 'Do\'kon nomi va manzili kiritilishi shart' });
         }
 

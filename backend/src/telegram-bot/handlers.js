@@ -29,10 +29,8 @@ function setupHandlers(bot) {
                 return bot.sendMessage(chatId, `👋 Xush kelibsiz qaytadan, *${user.full_name}*!\n\nSiz platformamizda ro'yxatdan o'tgansiz. Tizimga kirish uchun yangi tasdiqlash kodini olishingiz mumkin:`, {
                     parse_mode: 'Markdown',
                     reply_markup: {
-                        inline_keyboard: [
-                            [{ text: '🔑 Kirish kodini olish', callback_data: 'get_code' }],
-                            [{ text: '🌐 Platformani ochish', web_app: { url: WEBAPP_URL } }]
-                        ]
+                        keyboard: [[{ text: '🔑 Kod olish' }], [{ text: '🌐 Platformani ochish', web_app: { url: WEBAPP_URL } }]],
+                        resize_keyboard: true
                     }
                 });
             }
@@ -91,43 +89,54 @@ function setupHandlers(bot) {
         const data = callbackQuery.data;
 
         if (data === 'get_code') {
-            try {
-                const referral_code = generateCode();
-                
-                // Direct Prisma update
-                await prisma.user.upsert({
-                    where: { tg_id: tgId },
-                    update: { referral_code, referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000) }, // 2 min
-                    create: {
-                        tg_id: tgId,
-                        full_name: callbackQuery.from.first_name || 'Foydalanuvchi',
-                        referral_code,
-                        role: 'CUSTOMER',
-                        referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000)
-                    }
-                });
-
-                await bot.answerCallbackQuery(callbackQuery.id);
-                await bot.sendMessage(chatId, `🔑 Sizning yangi tasdiqlash kodingiz: \`${referral_code}\`\n\n⚠️ *Ushbu kod 2 daqiqa davomida amal qiladi.* Keyin yaroqsiz bo'ladi. Uni nusxalab oling va platformaga kiriting.`, {
-                    parse_mode: 'Markdown'
-                });
-            } catch (err) {
-                console.error('Bot get_code error:', err);
-                bot.sendMessage(chatId, '❌ Kod olishda xatolik yuz berdi.');
-            }
+            await handleGetCode(bot, chatId, tgId, callbackQuery.id, callbackQuery.from.first_name);
         }
     });
+
+    async function handleGetCode(bot, chatId, tgId, callbackQueryId = null, firstName = 'Foydalanuvchi') {
+        try {
+            const referral_code = generateCode();
+            
+            await prisma.user.upsert({
+                where: { tg_id: tgId },
+                update: { referral_code, referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000) },
+                create: {
+                    tg_id: tgId,
+                    full_name: firstName,
+                    referral_code,
+                    role: 'CUSTOMER',
+                    referral_code_expires_at: new Date(Date.now() + 2 * 60 * 1000)
+                }
+            });
+
+            if (callbackQueryId) await bot.answerCallbackQuery(callbackQueryId);
+            
+            await bot.sendMessage(chatId, `🔑 Sizning yangi tasdiqlash kodingiz: \`${referral_code}\`\n\n⚠️ *Ushbu kod 2 daqiqa davomida amal qiladi.* Keyin yaroqsiz bo'ladi. Uni nusxalab oling va platformaga kiriting.`, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    keyboard: [[{ text: '🔑 Kod olish' }], [{ text: '🌐 Platformani ochish', web_app: { url: WEBAPP_URL } }]],
+                    resize_keyboard: true
+                }
+            });
+        } catch (err) {
+            console.error('Bot get_code error:', err);
+            bot.sendMessage(chatId, '❌ Kod olishda xatolik yuz berdi.');
+        }
+    }
 
     // Handle onboarding flow
     bot.on('message', async (msg) => {
         const chatId = msg.chat.id;
         const state = userStates.get(chatId);
 
-        if (!state) return;
+            // Handle text keyboard "🔑 Kod olish"
+            if (msg.text === '🔑 Kod olish') {
+                const tgId = String(msg.from.id);
+                return handleGetCode(bot, chatId, tgId, null, msg.from.first_name);
+            }
 
-        try {
             // Step 1: Region selection
-            if (state.step === 'awaiting_region' && msg.text && REGIONS.includes(msg.text)) {
+            if (state && state.step === 'awaiting_region' && msg.text && REGIONS.includes(msg.text)) {
                 state.data.region = msg.text;
                 state.step = 'awaiting_phone';
 
@@ -187,9 +196,8 @@ function setupHandlers(bot) {
                     `🚀 Platformani ochish uchun quyidagi tugmani bosing:`,
                     {
                         reply_markup: {
-                            inline_keyboard: [[
-                                { text: '🌐 Platformani ochish', web_app: { url: WEBAPP_URL } }
-                            ]]
+                            keyboard: [[{ text: '🔑 Kod olish' }], [{ text: '🌐 Platformani ochish', web_app: { url: WEBAPP_URL } }]],
+                            resize_keyboard: true
                         }
                     }
                 );

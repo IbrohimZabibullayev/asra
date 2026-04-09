@@ -172,7 +172,7 @@ function RegisterMerchantPage() {
                             className="btn btn-primary"
                             style={{ width: '100%', height: 56, borderRadius: 16, marginTop: 40, fontSize: '1rem', fontWeight: 800 }}
                             onClick={() => setStep(2)}
-                            disabled={!formData.store_name || !formData.region || !formData.district || !formData.phone}
+                            disabled={!formData.store_name || !formData.region || !formData.district || !formData.phone || !formData.store_address}
                         >
                             Keyingisi <ArrowRight size={20} />
                         </button>
