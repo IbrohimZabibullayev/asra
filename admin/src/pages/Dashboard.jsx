@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getApiUrl, getImageUrl } from '../utils/api'
 import { Users, Store, Clock, ShoppingCart, TrendingUp, Calendar, BarChart3, PieChart as PieIcon, ArrowUpRight } from 'lucide-react'
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -15,7 +16,7 @@ function Dashboard() {
 
     async function fetchStats() {
         try {
-            const res = await fetch('/api/admin/stats')
+            const res = await fetch(getApiUrl('/api/admin/stats'))
             if (res.ok) {
                 const data = await res.json()
                 setStats(data.stats)
@@ -222,7 +223,7 @@ function Dashboard() {
                                                     {idx + 1}
                                                 </div>
                                                 {seller.logo ? (
-                                                    <img src={seller.logo} alt={seller.name} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+                                                    <img src={getImageUrl(seller.logo)} alt={seller.name} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
                                                 ) : (
                                                     <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                         <Store size={20} color="#94a3b8" />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getApiUrl, getImageUrl } from '../utils/api'
 import { toast } from 'react-toastify'
 import { Search, Ban, X, Check } from 'lucide-react'
 
@@ -15,7 +16,7 @@ function ProductsPage() {
 
     async function fetchProducts() {
         try {
-            const res = await fetch('/api/admin/products')
+            const res = await fetch(getApiUrl('/api/admin/products'))
             if (res.ok) {
                 const data = await res.json()
                 setProducts(data.products)
@@ -36,7 +37,7 @@ function ProductsPage() {
 
         setBlockLoading(true)
         try {
-            const res = await fetch(`/api/admin/products/${blockModal.product.id}/block`, {
+            const res = await fetch(getApiUrl(`/api/admin/products/${blockModal.product.id}/block`), {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason: blockModal.reason })
@@ -103,7 +104,7 @@ function ProductsPage() {
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                         {product.image_url ? (
-                                            <img src={product.image_url} alt={product.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
+                                            <img src={getImageUrl(product.image_url)} alt={product.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
                                         ) : (
                                             <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>Rasmsiz</div>
                                         )}

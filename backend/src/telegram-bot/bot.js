@@ -15,6 +15,11 @@ function getBot() {
             throw new Error('BOT_TOKEN environment variable is not set');
         }
         botInstance = new TelegramBot(token, { polling: true });
+        
+        botInstance.on('polling_error', (error) => {
+            console.warn(`[Telegram Bot] Polling Error: ${error.code} - Bu xatolik odatda Railway (prod) va Local backend bir xil tokenni ulashganda kelib chiqadi. Server ishlashda davom etmoqda.`);
+        });
+
         console.log('🤖 Telegram Bot instance created (singleton)');
     }
     return botInstance;

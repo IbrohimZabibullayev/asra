@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getApiUrl, getImageUrl } from '../utils/api'
 import { Clock, Check, X, Store, User, MapPin, FileText, BadgeCheck, Building2, Phone, ArrowUpRight, AlertCircle } from 'lucide-react'
 
 function PendingStores() {
@@ -11,7 +12,7 @@ function PendingStores() {
 
     async function fetchStores() {
         try {
-            const res = await fetch('/api/admin/pending-stores')
+            const res = await fetch(getApiUrl('/api/admin/pending-stores'))
             if (res.ok) {
                 const data = await res.json()
                 setStores(data.stores)
@@ -26,7 +27,7 @@ function PendingStores() {
     async function handleApprove(id) {
         if (!confirm('Ushbu do\'konni tasdiqlaysizmi?')) return
         try {
-            const res = await fetch(`/api/admin/approve/${id}`, { method: 'POST' })
+            const res = await fetch(getApiUrl(`/api/admin/approve/${id}`), { method: 'POST' })
             if (res.ok) {
                 setStores(stores.filter(s => s.id !== id))
             }
@@ -38,7 +39,7 @@ function PendingStores() {
     async function handleReject(id) {
         if (!confirm('Ushbu arizani rad etasizmi?')) return
         try {
-            const res = await fetch(`/api/admin/reject/${id}`, { method: 'POST' })
+            const res = await fetch(getApiUrl(`/api/admin/reject/${id}`), { method: 'POST' })
             if (res.ok) {
                 setStores(stores.filter(s => s.id !== id))
             }
@@ -71,7 +72,7 @@ function PendingStores() {
                                 <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
                                     <div style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-light)' }}>
                                         {store.store_logo ? (
-                                            <img src={store.store_logo} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
+                                            <img src={getImageUrl(store.store_logo)} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
                                         ) : (
                                             <Store size={28} />
                                         )}

@@ -1,5 +1,6 @@
 import { useState, useContext } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl } from '../utils/api'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Package, Image as ImageIcon, Plus, Upload, Scale } from 'lucide-react'
 import { toast } from 'react-toastify'
@@ -40,7 +41,7 @@ function AddProductPage() {
             if (imageFile) {
                 const fd = new FormData()
                 fd.append('image', imageFile)
-                const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+                const uploadRes = await fetch(getApiUrl('/api/upload'), { method: 'POST', body: fd })
                 const uploadData = await uploadRes.json()
                 if (uploadRes.ok) {
                     imageUrl = uploadData.url
@@ -51,7 +52,7 @@ function AddProductPage() {
                 }
             }
 
-            const res = await fetch('/api/products', {
+            const res = await fetch(getApiUrl('/api/products'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getApiUrl } from '../utils/api'
 import { Users, User, Store, ShieldCheck, ShieldAlert, Phone, AtSign, MapPin, Check, X, Search, Filter, Trash2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -16,7 +17,7 @@ function UserManagement() {
 
     async function fetchUsers() {
         try {
-            const res = await fetch('/api/admin/users')
+            const res = await fetch(getApiUrl('/api/admin/users'))
             if (res.ok) {
                 const data = await res.json()
                 setUsers(data.users)
@@ -31,7 +32,7 @@ function UserManagement() {
     async function handleStatusToggle(user) {
         const newStatus = user.status === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
         try {
-            const res = await fetch(`/api/admin/users/${user.id}/status`, {
+            const res = await fetch(getApiUrl(`/api/admin/users/${user.id}/status`), {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -52,7 +53,7 @@ function UserManagement() {
     async function handleDeleteUser() {
         if (!selectedUser) return;
         try {
-            const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
+            const res = await fetch(getApiUrl(`/api/admin/users/${selectedUser.id}`), {
                 method: 'DELETE'
             });
 

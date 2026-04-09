@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl, getImageUrl } from '../utils/api'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Package, Image as ImageIcon, Check, Upload, Scale, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -28,7 +29,7 @@ function EditProductPage() {
 
     async function fetchProduct() {
         try {
-            const res = await fetch(`/api/products/${id}`)
+            const res = await fetch(getApiUrl(`/api/products/${id}`))
             if (res.ok) {
                 const { product } = await res.json()
                 setFormData({
@@ -74,7 +75,7 @@ function EditProductPage() {
             if (imageFile) {
                 const fd = new FormData()
                 fd.append('image', imageFile)
-                const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+                const uploadRes = await fetch(getApiUrl('/api/upload'), { method: 'POST', body: fd })
                 const uploadData = await uploadRes.json()
                 if (uploadRes.ok) {
                     imageUrl = uploadData.url
@@ -85,7 +86,7 @@ function EditProductPage() {
                 }
             }
 
-            const res = await fetch(`/api/products/${id}`, {
+            const res = await fetch(getApiUrl(`/api/products/${id}`), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -138,7 +139,7 @@ function EditProductPage() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 16
                     }}>
                         {imagePreview ? (
-                            <img src={imagePreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getImageUrl(imagePreview)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                             <div style={{ textAlign: 'center', color: '#94a3b8' }}>
                                 <ImageIcon size={40} style={{ marginBottom: 8 }} />

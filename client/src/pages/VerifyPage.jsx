@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getApiUrl } from '../utils/api'
 import { Apple, CheckCircle2 } from 'lucide-react'
 
 function VerifyPage({ onVerify }) {
@@ -21,7 +22,7 @@ function VerifyPage({ onVerify }) {
 
         setLoading(true)
         try {
-            const res = await fetch('/api/verify', {
+            const res = await fetch(getApiUrl('/api/verify'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code })

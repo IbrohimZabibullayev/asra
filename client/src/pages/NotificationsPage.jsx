@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl } from '../utils/api'
 import { Bell, BellOff, ChevronRight, Package, Info, AlertCircle, ShoppingCart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,7 +16,7 @@ function NotificationsPage() {
 
     async function fetchNotifications() {
         try {
-            const res = await fetch('/api/notifications', {
+            const res = await fetch(getApiUrl('/api/notifications'), {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (res.ok) {
@@ -31,7 +32,7 @@ function NotificationsPage() {
 
     async function markAsRead(id) {
         try {
-            await fetch(`/api/notifications/read/${id}`, {
+            await fetch(getApiUrl(`/api/notifications/read/${id}`), {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             })

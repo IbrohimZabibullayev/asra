@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { getApiUrl } from './utils/api'
 import VerifyPage from './pages/VerifyPage'
 import HomePage from './pages/HomePage'
 import CartPage from './pages/CartPage'
@@ -49,7 +50,7 @@ function App() {
 
     async function fetchUser() {
         try {
-            const res = await fetch('/api/me', {
+            const res = await fetch(getApiUrl('/api/me'), {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (res.ok) {

@@ -1,6 +1,7 @@
 import { useContext } from 'react'
 import { CartContext } from '../context/CartContext'
 import { AuthContext } from '../App'
+import { getApiUrl, getImageUrl } from '../utils/api'
 import { Trash2, Plus, Minus, ShoppingBag, ChevronRight, CreditCard } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -18,7 +19,7 @@ function CartPage() {
         }
 
         try {
-            const res = await fetch('/api/orders', {
+            const res = await fetch(getApiUrl('/api/orders'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -71,7 +72,7 @@ function CartPage() {
 
                     return (
                         <div key={item.id} className="card" style={{ display: 'flex', gap: 12, padding: 12, alignItems: 'center' }}>
-                            <img src={item.image_url} alt={item.name} style={{ width: 80, height: 80, borderRadius: 12, objectFit: 'cover' }} />
+                            <img src={getImageUrl(item.image_url)} alt={item.name} style={{ width: 80, height: 80, borderRadius: 12, objectFit: 'cover' }} />
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 4 }}>{item.name}</div>
                                 <div style={{ fontSize: '0.85rem', color: 'var(--active-primary)', fontWeight: 600 }}>

@@ -1,9 +1,10 @@
 import { useContext, useState, useEffect } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl, getImageUrl } from '../utils/api'
 import RoleSwitcher from '../components/RoleSwitcher'
 import MerchantForm from '../components/MerchantForm'
 import AuthModal from '../components/AuthModal'
-import { User, LogOut, ChevronRight, Store, ShieldCheck, Mail, LogIn, Bell, Plus } from 'lucide-react'
+import { User, LogOut, ChevronRight, Store, ShieldCheck, Mail, LogIn, Bell, Plus, ShieldAlert } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function ProfilePage() {
@@ -26,7 +27,7 @@ function ProfilePage() {
 
     async function fetchNotifications() {
         try {
-            const res = await fetch('/api/notifications', {
+            const res = await fetch(getApiUrl('/api/notifications'), {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (res.ok) {
@@ -40,7 +41,7 @@ function ProfilePage() {
 
     async function fetchOrders() {
         try {
-            const res = await fetch('/api/orders/my', {
+            const res = await fetch(getApiUrl('/api/orders/my'), {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (res.ok) {
@@ -54,7 +55,7 @@ function ProfilePage() {
 
     async function fetchMerchantStats() {
         try {
-            const res = await fetch('/api/orders/stats/merchant', {
+            const res = await fetch(getApiUrl('/api/orders/stats/merchant'), {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (res.ok) {
@@ -114,7 +115,7 @@ function ProfilePage() {
         )
     }
 
-    const avatarUrl = user?.tg_id ? `/api/users/photo/${user.tg_id}` : null
+    const avatarUrl = user?.tg_id ? getApiUrl(`/api/users/photo/${user.tg_id}`) : null
     const isMerchant = user?.role === 'MERCHANT'
 
     if (isMerchant) {
@@ -122,14 +123,29 @@ function ProfilePage() {
             <div style={{ paddingBottom: 100 }}>
                 <div style={{ margin: '20px', borderRadius: 24, padding: '32px 24px', background: 'white', border: '1px solid var(--border-light)', textAlign: 'center' }}>
                     <div style={{ width: 80, height: 80, margin: '0 auto 16px', borderRadius: 20, background: 'var(--active-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {user.store_logo ? <img src={user.store_logo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Store size={40} color="var(--active-primary)" />}
+                        {user.store_logo ? <img src={getImageUrl(user.store_logo)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Store size={40} color="var(--active-primary)" />}
                     </div>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: 4 }}>{user.store_name}</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 12 }}>{user.region}, {user.district}</p>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: '#dcfce7', color: '#15803d', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
-                        <ShieldCheck size={14} /> Tasdiqlangan do'kon
-                    </div>
+                    {user.merchant_status === 'APPROVED' ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: '#dcfce7', color: '#15803d', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                            <ShieldCheck size={14} /> Tasdiqlangan do'kon
+                        </div>
+                    ) : (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: '#fef1f2', color: '#be123c', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                            <ShieldAlert size={14} /> Tasdiqlanmagan do'kon
+                        </div>
+                    )}
                 </div>
+
+                {user.merchant_status !== 'APPROVED' && (
+                    <div style={{ margin: '0 20px 24px', padding: '16px', background: '#fff1f2', color: '#9f1239', borderRadius: 16, border: '1px dashed #fecdd3', fontSize: '0.85rem', display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <ShieldAlert size={28} style={{ flexShrink: 0 }} />
+                        <div style={{ lineHeight: 1.5, fontWeight: 500 }}>
+                            Do'koningiz ma'lumotlari hozirda tekshirilmoqda. Siz o'z mahsulotlaringizni qo'shib tursangiz bo'ladi, lekin ular admin tasdiqlamaguncha platformada mijozlarga ko'rinmaydi.
+                        </div>
+                    </div>
+                )}
 
                 <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
                     <div className="card" style={{ padding: 16, background: '#f0f9ff', border: 'none' }}>

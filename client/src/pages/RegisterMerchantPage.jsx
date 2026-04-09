@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl } from '../utils/api'
 import { useNavigate } from 'react-router-dom'
 import { Store, MapPin, Building2, Phone, ChevronLeft, Upload, CheckCircle2, Building, User } from 'lucide-react'
 import { toast } from 'react-toastify'
@@ -41,7 +42,7 @@ function RegisterMerchantPage() {
     async function uploadImage(file) {
         const fd = new FormData()
         fd.append('image', file)
-        const res = await fetch('/api/upload', { method: 'POST', body: fd })
+        const res = await fetch(getApiUrl('/api/upload'), { method: 'POST', body: fd })
         const data = await res.json()
         if (res.ok) return data.url
         throw new Error(data.error)
@@ -63,7 +64,7 @@ function RegisterMerchantPage() {
             const headers = { 'Content-Type': 'application/json' }
             if (token) headers['Authorization'] = `Bearer ${token}`
 
-            const res = await fetch('/api/apply-merchant', {
+            const res = await fetch(getApiUrl('/api/apply-merchant'), {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ ...formData, logo_url: logoUrl })
@@ -118,7 +119,16 @@ function RegisterMerchantPage() {
                     <div className="fade-in">
                         <div style={{ marginBottom: 32 }}>
                             <h2 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: 8 }}>Do'kon ma'lumotlari</h2>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>O'z do'koningiz haqidagi asosiy ma'lumotlarni kiriting.</p>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: 16 }}>O'z do'koningiz haqidagi asosiy ma'lumotlarni kiriting.</p>
+
+                            <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecdd3', borderRadius: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                                <div style={{ color: '#e11d48', marginTop: 2 }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: '#be123c', lineHeight: 1.4, fontWeight: 600 }}>
+                                    Iltimos, faqat <span style={{ fontWeight: 800 }}>haqiqiy ma'lumotlarni</span> kiriting! Noto'g'ri yoki qalbaki ma'lumot kiritsangiz hisobingiz butunlay bloklanadi.
+                                </div>
+                            </div>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -176,6 +186,16 @@ function RegisterMerchantPage() {
                         >
                             Keyingisi <ArrowRight size={20} />
                         </button>
+
+                        <div style={{ marginTop: 24, textAlign: 'center' }}>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Allaqachon do'koningiz bormi? </span>
+                            <span 
+                                onClick={() => navigate('/verify')} 
+                                style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--active-primary)', cursor: 'pointer', textDecoration: 'underline' }}
+                            >
+                                Bu yerdan kiring
+                            </span>
+                        </div>
                     </div>
                 ) : (
                     <div className="fade-in">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, useMemo } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl } from '../utils/api'
 import ProductCard from '../components/ProductCard'
 import AuthModal from '../components/AuthModal'
 import { Flame, Sparkles, MapPin } from 'lucide-react'
@@ -35,6 +36,7 @@ function HomePage() {
                 });
             }, (error) => {
                 console.warn("Geolocation denied");
+                // Optional: set a flag to show a message to the user about why distances aren't shown
             });
         }
     }, [])
@@ -42,8 +44,8 @@ function HomePage() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const url = user?.region ? `/api/products?region=${encodeURIComponent(user.region)}` : '/api/products';
-                const res = await fetch(url);
+                const path = user?.region ? `/api/products?region=${encodeURIComponent(user.region)}` : '/api/products';
+                const res = await fetch(getApiUrl(path));
                 if (res.ok) {
                     const data = await res.json();
                     setProducts(data.products || []);

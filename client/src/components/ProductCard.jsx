@@ -1,5 +1,6 @@
 import { Store, MapPin, ShoppingBag, Plus, Minus, Clock } from 'lucide-react'
 import { useContext } from 'react'
+import { getImageUrl } from '../utils/api'
 import { CartContext } from '../context/CartContext'
 
 function ProductCard({ product, distance }) {
@@ -12,7 +13,7 @@ function ProductCard({ product, distance }) {
         : product.price
 
     // Use high quality confectionery/bakery images from Unsplash
-    const imageUrl = product.image_url || `https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400`
+    const imageUrl = getImageUrl(product.image_url) || `https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400`
 
     return (
         <div className="product-card" style={{ position: 'relative' }}>

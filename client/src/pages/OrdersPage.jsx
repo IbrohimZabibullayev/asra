@@ -1,5 +1,6 @@
 import { useContext, useState, useEffect } from 'react'
 import { AuthContext } from '../App'
+import { getApiUrl } from '../utils/api'
 import { ClipboardList, ShoppingBag, Clock, QrCode, MapPin, Store, XCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toaster from 'react-hot-toast'
@@ -21,7 +22,7 @@ function OrdersPage() {
     async function fetchOrders() {
         try {
             const endpoint = isMerchant ? '/api/orders/merchant' : '/api/orders/my'
-            const res = await fetch(endpoint, {
+            const res = await fetch(getApiUrl(endpoint), {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (res.ok) {
@@ -38,7 +39,7 @@ function OrdersPage() {
     async function handleOrderStatus(orderId, action) {
         if (!window.confirm("Amaliyotni tasdiqlaysizmi?")) return;
         try {
-            const res = await fetch(`/api/orders/${orderId}/${action}`, {
+            const res = await fetch(getApiUrl(`/api/orders/${orderId}/${action}`), {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}` }
             })
@@ -88,8 +89,8 @@ function OrdersPage() {
     if (orders.length === 0) {
         return (
             <div className="section">
-                <div className="empty-state" style={{ marginTop: 80 }}>
-                    <div className="empty-state-icon" style={{ background: '#f3f4f6', color: 'var(--text-muted)', opacity: 1, width: 80, height: 80 }}>
+                <div className="empty-state" style={{ marginTop: 80, textAlign: 'center' }}>
+                    <div className="empty-state-icon" style={{ background: 'var(--active-primary-bg)', color: 'var(--active-primary)', borderRadius: '50%', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                         <ClipboardList size={40} />
                     </div>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>Hozircha buyurtmalar yo'q</h3>
