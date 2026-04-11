@@ -74,3 +74,11 @@ model Notification {
   is_read     Boolean  @default(false)
   created_at  DateTime @default(now())
 }
+
+model BotUser {
+  id         Int      @id @default(autoincrement())
+  tg_id      String   @unique
+  full_name  String?
+  username   String?
+  created_at DateTime @default(now())
+}

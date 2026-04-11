@@ -22,6 +22,17 @@ function setupHandlers(bot) {
             const lastName = msg.from.last_name || '';
             const fullName = `${firstName} ${lastName}`.trim() || 'Do\'stim';
 
+            // Track Bot User Start
+            try {
+                await prisma.botUser.upsert({
+                    where: { tg_id: tgId },
+                    update: { full_name: fullName, username: msg.from.username || null },
+                    create: { tg_id: tgId, full_name: fullName, username: msg.from.username || null }
+                });
+            } catch (err) {
+                console.log('BotUser saving error:', err.message);
+            }
+
             // Direct Prisma check
             const user = await prisma.user.findUnique({ where: { tg_id: tgId } });
 

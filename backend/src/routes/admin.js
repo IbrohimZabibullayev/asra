@@ -94,6 +94,7 @@ router.post('/reject/:id', async (req, res) => {
 // GET /api/admin/stats — Dashboard statistics
 router.get('/stats', async (req, res) => {
     try {
+        const totalBotUsers = await prisma.botUser.count();
         const totalUsers = await prisma.user.count();
         const activeMerchants = await prisma.user.count({ where: { merchant_status: 'APPROVED' } });
         const pendingApplications = await prisma.user.count({ where: { merchant_status: 'PENDING' } });
@@ -115,9 +116,16 @@ router.get('/stats', async (req, res) => {
         const weeklyOrders = await prisma.order.findMany({ where: { created_at: { gte: sevenDaysAgo } } });
         const monthlyOrders = await prisma.order.findMany({ where: { created_at: { gte: startOfMonth } } });
 
-        const dailyTurnover = dailyOrders.reduce((acc, curr) => acc + curr.total, 0);
-        const weeklyTurnover = weeklyOrders.reduce((acc, curr) => acc + curr.total, 0);
-        const monthlyTurnover = monthlyOrders.reduce((acc, curr) => acc + curr.total, 0);
+        const isNotRejected = o => o.status !== 'REJECTED' && o.status !== 'CANCELLED';
+        const isRejected = o => o.status === 'REJECTED' || o.status === 'CANCELLED';
+
+        const dailyTurnover = dailyOrders.filter(isNotRejected).reduce((acc, curr) => acc + curr.total, 0);
+        const weeklyTurnover = weeklyOrders.filter(isNotRejected).reduce((acc, curr) => acc + curr.total, 0);
+        const monthlyTurnover = monthlyOrders.filter(isNotRejected).reduce((acc, curr) => acc + curr.total, 0);
+
+        const dailyRejectedTotal = dailyOrders.filter(isRejected).reduce((acc, curr) => acc + curr.total, 0);
+        const weeklyRejectedTotal = weeklyOrders.filter(isRejected).reduce((acc, curr) => acc + curr.total, 0);
+        const monthlyRejectedTotal = monthlyOrders.filter(isRejected).reduce((acc, curr) => acc + curr.total, 0);
 
         // Calculate daily growth
         const yesterdayStart = new Date(startOfDay);
@@ -125,7 +133,7 @@ router.get('/stats', async (req, res) => {
         const yesterdayOrders = await prisma.order.findMany({
             where: { created_at: { gte: yesterdayStart, lt: startOfDay } }
         });
-        const yesterdayTurnover = yesterdayOrders.reduce((acc, curr) => acc + curr.total, 0);
+        const yesterdayTurnover = yesterdayOrders.filter(isNotRejected).reduce((acc, curr) => acc + curr.total, 0);
 
         let dailyGrowth = 0;
         if (yesterdayTurnover === 0 && dailyTurnover > 0) {
@@ -143,14 +151,19 @@ router.get('/stats', async (req, res) => {
             const dateStr = d.toISOString().split('T')[0];
             chartDataMap[dateStr] = {
                 name: dayNames[d.getDay()],
-                value: 0
+                value: 0,
+                rejectedValue: 0
             };
         }
 
         weeklyOrders.forEach(order => {
             const dateStr = new Date(order.created_at).toISOString().split('T')[0];
             if (chartDataMap[dateStr]) {
-                chartDataMap[dateStr].value += order.total;
+                if (order.status === 'REJECTED' || order.status === 'CANCELLED') {
+                    chartDataMap[dateStr].rejectedValue += order.total;
+                } else {
+                    chartDataMap[dateStr].value += order.total;
+                }
             }
         });
         const chartData = Object.values(chartDataMap);
@@ -200,6 +213,10 @@ router.get('/stats', async (req, res) => {
                 dailyGrowth: Number(dailyGrowth.toFixed(1)),
                 weeklyTurnover,
                 monthlyTurnover,
+                dailyRejectedTotal,
+                weeklyRejectedTotal,
+                monthlyRejectedTotal,
+                totalBotUsers,
                 chartData,
                 topSellers,
                 orderStatuses
@@ -334,5 +351,27 @@ function sanitizeUser(user) {
         created_at: user.created_at
     };
 }
+
+// GET /api/admin/bot-stats — Get bot starts within date range
+router.get('/bot-stats', async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        let where = {};
+        if (startDate || endDate) {
+            where.created_at = {};
+            if (startDate) where.created_at.gte = new Date(startDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                where.created_at.lte = end;
+            }
+        }
+        const count = await prisma.botUser.count({ where });
+        res.json({ count });
+    } catch (err) {
+        console.error('Bot stats error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
 
 module.exports = router;

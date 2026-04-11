@@ -86,80 +86,118 @@ function ProductsPage() {
                 </div>
             </div>
 
-            <div className="card">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>Mahsulot</th>
-                            <th>Sotuvchi</th>
-                            <th>Narxi</th>
-                            <th>Holati</th>
-                            <th>Sana</th>
-                            <th align="right">Harakat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredProducts.map(product => (
-                            <tr key={product.id}>
-                                <td>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                        {product.image_url ? (
-                                            <img src={getImageUrl(product.image_url)} alt={product.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                                        ) : (
-                                            <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>Rasmsiz</div>
-                                        )}
-                                        <div>
-                                            <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{product.name}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{product.stock} {product.unit}</div>
-                                        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px', marginTop: '24px' }}>
+                {filteredProducts.map(product => (
+                    <div 
+                        key={product.id} 
+                        style={{ 
+                            background: 'var(--bg-card)', 
+                            borderRadius: '16px', 
+                            padding: '20px', 
+                            boxShadow: 'var(--shadow-sm)', 
+                            border: '1px solid var(--border-light)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '16px',
+                            transition: 'all 0.3s ease',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-4px)';
+                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                            e.currentTarget.style.border = '1px solid var(--border)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'none';
+                            e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                            e.currentTarget.style.border = '1px solid var(--border-light)';
+                        }}
+                    >
+                        {/* Status absolute indicator */}
+                        <div style={{ position: 'absolute', top: 16, right: 16 }}>
+                            {product.is_moderated ? (
+                                <span className="badge" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>Bloklangan</span>
+                            ) : product.is_active ? (
+                                <span className="badge" style={{ background: '#ecfdf5', color: '#166534', border: '1px solid #bbf7d0' }}>Faol</span>
+                            ) : (
+                                <span className="badge" style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }}>Nofaol</span>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            {product.image_url ? (
+                                <img src={getImageUrl(product.image_url)} alt={product.name} style={{ width: 80, height: 80, borderRadius: '12px', objectFit: 'cover', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }} />
+                            ) : (
+                                <div style={{ width: 80, height: 80, borderRadius: '12px', background: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>Rasmsiz</div>
+                            )}
+                            <div style={{ flex: 1, paddingRight: '60px' }}>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: '1.3' }}>{product.name}</h3>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>{product.stock} {product.unit} qoldiq</div>
+                            </div>
+                        </div>
+
+                        <div style={{ height: '1px', background: 'var(--border-light)', margin: '4px 0' }}></div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>Sotuvchi</span>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{product.merchant_name || 'Noma\'lum do\'kon'}</div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>📍 {product.region || 'Viloyat ko\'rsatilmagan'}</div>
+                            </div>
+
+                            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>Narx</span>
+                                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                    {Math.round(product.price * (1 - product.discount / 100)).toLocaleString()} so'm
+                                </div>
+                                {product.discount > 0 && (
+                                    <div style={{ fontSize: '0.8rem', color: '#ef4444', textDecoration: 'line-through', fontWeight: 600 }}>
+                                        {product.price.toLocaleString()} so'm
                                     </div>
-                                </td>
-                                <td>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>{product.merchant_name}</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{product.region}</div>
-                                </td>
-                                <td>
-                                    <div style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                                        {Math.round(product.price * (1 - product.discount / 100)).toLocaleString()} so'm
-                                    </div>
-                                    {product.discount > 0 && <div style={{ fontSize: '0.7rem', color: '#ef4444', textDecoration: 'line-through' }}>{product.price.toLocaleString()} so'm</div>}
-                                </td>
-                                <td>
-                                    {product.is_moderated ? (
-                                        <span className="badge badge-danger">Bloklangan</span>
-                                    ) : product.is_active ? (
-                                        <span className="badge badge-success">Faol</span>
-                                    ) : (
-                                        <span className="badge badge-warning">Nofaol</span>
-                                    )}
-                                </td>
-                                <td>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                        {new Date(product.created_at).toLocaleDateString()}<br/>
-                                        <span style={{ fontSize: '0.7rem' }}>{new Date(product.created_at).toLocaleTimeString().slice(0, 5)}</span>
-                                    </div>
-                                </td>
-                                <td align="right">
-                                    <button
-                                        className="btn"
-                                        style={{ background: product.is_moderated ? 'var(--border)' : '#fef2f2', color: product.is_moderated ? 'var(--text-muted)' : '#dc2626', padding: '6px 12px', fontSize: '0.8rem', opacity: product.is_moderated ? 0.5 : 1 }}
-                                        disabled={product.is_moderated}
-                                        onClick={() => setBlockModal({ isOpen: true, product, reason: '' })}
-                                    >
-                                        <Ban size={14} /> Bloklash
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                        {filteredProducts.length === 0 && (
-                            <tr>
-                                <td colSpan="6" align="center" style={{ padding: 40, color: 'var(--text-muted)' }}>
-                                    Mahsulotlar topilmadi
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                                {new Date(product.created_at).toLocaleDateString()} yil
+                            </span>
+                            <button
+                                onClick={() => setBlockModal({ isOpen: true, product, reason: '' })}
+                                disabled={product.is_moderated}
+                                style={{ 
+                                    background: product.is_moderated ? 'transparent' : '#fef2f2', 
+                                    color: product.is_moderated ? 'var(--text-muted)' : '#dc2626', 
+                                    padding: '8px 16px', 
+                                    borderRadius: '8px',
+                                    fontSize: '0.85rem', 
+                                    fontWeight: 700,
+                                    border: product.is_moderated ? '1px dashed var(--border)' : '1px solid transparent',
+                                    cursor: product.is_moderated ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    transition: 'all 0.2s',
+                                    opacity: product.is_moderated ? 0.6 : 1
+                                }}
+                            >
+                                {product.is_moderated ? <Check size={16} /> : <Ban size={16} />} 
+                                {product.is_moderated ? 'Bloklangan' : 'Bloklash'}
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                
+                {filteredProducts.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border)' }}>
+                        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-muted)' }}>
+                            <Search size={32} />
+                        </div>
+                        <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: 8 }}>Mahsulotlar topilmadi</h3>
+                        <p style={{ color: 'var(--text-muted)' }}>Boshqa qidiruv so'zini kiritib ko'ring yoki birozdan so'ng qayta tekshiring.</p>
+                    </div>
+                )}
             </div>
 
             {blockModal.isOpen && (

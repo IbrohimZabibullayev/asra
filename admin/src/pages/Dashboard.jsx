@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 import { getApiUrl, getImageUrl } from '../utils/api'
-import { Users, Store, Clock, ShoppingCart, TrendingUp, Calendar, BarChart3, PieChart as PieIcon, ArrowUpRight } from 'lucide-react'
+import { Users, Store, Clock, ShoppingCart, TrendingUp, Calendar, BarChart3, PieChart as PieIcon, ArrowUpRight, Bot, XCircle } from 'lucide-react'
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, AreaChart, Area
+    PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar
 } from 'recharts'
 
 function Dashboard() {
     const [stats, setStats] = useState(null)
     const [loading, setLoading] = useState(true)
+
+    const [botStartDate, setBotStartDate] = useState('')
+    const [botEndDate, setBotEndDate] = useState('')
+    const [botFilterCount, setBotFilterCount] = useState(null)
+    const [botLoading, setBotLoading] = useState(false)
 
     useEffect(() => {
         fetchStats()
@@ -25,6 +30,24 @@ function Dashboard() {
             console.error('Stats error:', err)
         } finally {
             setLoading(false)
+        }
+    }
+
+    async function fetchBotStats(start, end) {
+        setBotLoading(true)
+        try {
+            const url = new URL(getApiUrl('/api/admin/bot-stats'))
+            if (start) url.searchParams.append('startDate', start)
+            if (end) url.searchParams.append('endDate', end)
+            const res = await fetch(url)
+            if (res.ok) {
+                const data = await res.json()
+                setBotFilterCount(data.count)
+            }
+        } catch(err) {
+            console.error(err)
+        } finally {
+            setBotLoading(false)
         }
     }
 
@@ -69,6 +92,32 @@ function Dashboard() {
             <div className="page-header">
                 <h1>Xush kelibsiz, Admin</h1>
                 <p>Platformaning umumiy holati va moliyaviy ko'rsatkichlari bilan tanishing.</p>
+            </div>
+
+            <div className="card" style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ background: '#f5f3ff', color: '#8b5cf6', padding: 12, borderRadius: 12 }}><Bot size={24} /></div>
+                        <div>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>Bot foydalanuvchilari</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Umumiy /start bosganlar: {stats?.totalBotUsers || 0}</div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <input type="date" value={botStartDate} onChange={e => setBotStartDate(e.target.value)} style={{ padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 8, outline: 'none' }} />
+                        <span style={{ color: 'var(--text-muted)' }}>-</span>
+                        <input type="date" value={botEndDate} onChange={e => setBotEndDate(e.target.value)} style={{ padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 8, outline: 'none' }} />
+                        <button className="btn" onClick={() => fetchBotStats(botStartDate, botEndDate)} disabled={botLoading} style={{ background: 'var(--primary)', color: 'white', padding: '8px 16px' }}>
+                            {botLoading ? 'Kuting...' : 'Hisoblash'}
+                        </button>
+                    </div>
+                </div>
+                {botFilterCount !== null && (
+                    <div style={{ marginTop: 16, padding: 16, background: '#f0fdf4', borderRadius: 8, color: '#166534', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', animation: 'fadeIn 0.3s ease' }}>
+                        <span>Tanlangan sanada: {botFilterCount} ta foydalanuvchi start bosgan.</span>
+                        <button onClick={() => setBotFilterCount(null)} style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer', opacity: 0.7 }}>Yopish</button>
+                    </div>
+                )}
             </div>
 
             <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
@@ -135,7 +184,8 @@ function Dashboard() {
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
                                     formatter={(value) => [`${value.toLocaleString()} so'm`, 'Aylanma']}
                                 />
-                                <Area type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                                <Area type="monotone" dataKey="value" name="Aylanma" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                                <Area type="monotone" dataKey="rejectedValue" name="Rad etilgan" stroke="#ef4444" strokeWidth={2} fillOpacity={0} strokeDasharray="5 5" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -245,8 +295,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* Sub-Stats */}
-            <div className="stats-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <div className="stats-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                 <div className="stat-card" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                     <div className="stat-icon" style={{ background: '#ecfdf5', color: '#10b981', margin: 0 }}><Calendar size={24} /></div>
                     <div>
@@ -259,6 +308,13 @@ function Dashboard() {
                     <div>
                         <div className="stat-label">Oylik umumiy</div>
                         <div className="stat-value" style={{ fontSize: '1.4rem', margin: 0 }}>{(stats?.monthlyTurnover || 0).toLocaleString()} <span style={{ fontSize: '0.8rem' }}>so'm</span></div>
+                    </div>
+                </div>
+                <div className="stat-card" style={{ display: 'flex', alignItems: 'center', gap: 20, borderTop: '4px solid #ef4444' }}>
+                    <div className="stat-icon" style={{ background: '#fef2f2', color: '#ef4444', margin: 0 }}><XCircle size={24} /></div>
+                    <div>
+                        <div className="stat-label">Rad etilganlar summasi (Haftalik)</div>
+                        <div className="stat-value" style={{ fontSize: '1.4rem', margin: 0, color: '#ef4444' }}>{(stats?.weeklyRejectedTotal || 0).toLocaleString()} <span style={{ fontSize: '0.8rem' }}>so'm</span></div>
                     </div>
                 </div>
             </div>
