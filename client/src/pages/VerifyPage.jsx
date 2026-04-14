@@ -33,7 +33,7 @@ function VerifyPage({ onVerify }) {
             if (res.ok) {
                 setSuccess(data.message || 'Muvaffaqiyatli tasdiqlandi!')
                 setTimeout(() => {
-                    onVerify(data.token, data.user)
+                    onVerify(data.token, data.user, data.waitlistMode)
                     navigate('/home')
                 }, 800)
             } else {

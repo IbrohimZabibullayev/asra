@@ -100,6 +100,9 @@ router.get('/stats', async (req, res) => {
         const pendingApplications = await prisma.user.count({ where: { merchant_status: 'PENDING' } });
         const totalOrders = await prisma.order.count();
         const totalProducts = await prisma.product.count();
+        
+        const waitlistUsers = await prisma.user.count({ where: { is_waitlisted: true } });
+        const waitlistViews = await prisma.waitlistView.count();
 
         // Calculate turnover
         const now = new Date();
@@ -217,6 +220,9 @@ router.get('/stats', async (req, res) => {
                 weeklyRejectedTotal,
                 monthlyRejectedTotal,
                 totalBotUsers,
+                waitlistUsers,
+                waitlistViews,
+                waitlistMode: process.env.WAITLIST_MODE === 'true',
                 chartData,
                 topSellers,
                 orderStatuses
@@ -370,6 +376,44 @@ router.get('/bot-stats', async (req, res) => {
         res.json({ count });
     } catch (err) {
         console.error('Bot stats error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
+// GET /api/admin/waitlist-mode — View waitlist mode status
+router.get('/waitlist-mode', async (req, res) => {
+    res.json({ enabled: process.env.WAITLIST_MODE === 'true' });
+});
+
+// POST /api/admin/waitlist-mode — Toggle waitlist mode via in-memory env
+router.post('/waitlist-mode', async (req, res) => {
+    try {
+        const { enabled } = req.body;
+        process.env.WAITLIST_MODE = enabled ? 'true' : 'false';
+        res.json({ waitlistMode: enabled });
+    } catch (err) {
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
+// POST /api/admin/waitlist-view — Record a visit to the waitlist page
+router.post('/waitlist-view', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        let tg_id = null;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split(' ')[1];
+            try {
+                const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
+                tg_id = decoded.tgId;
+            } catch (err) {
+                // Ignore invalid tokens for view tracking
+            }
+        }
+        await prisma.waitlistView.create({ data: { tg_id } });
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Waitlist view error:', err);
         res.status(500).json({ error: 'Server xatosi' });
     }
 });

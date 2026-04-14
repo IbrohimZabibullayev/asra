@@ -36,17 +36,35 @@ router.post('/verify', async (req, res) => {
 
         if (user.is_verified) {
             // Already verified — still issue a token
+            if (process.env.WAITLIST_MODE === 'true' && user.role !== 'MERCHANT') {
+                if (!user.is_waitlisted) {
+                    await prisma.user.update({ where: { id: user.id }, data: { is_waitlisted: true } });
+                }
+                const token = jwt.sign(
+                    { userId: user.id, tgId: user.tg_id },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '30d' }
+                );
+                return res.json({ token, user: sanitizeUser(user), waitlisted: true, waitlistMode: true, message: 'Siz waitlistdasiz' });
+            }
+
             const token = jwt.sign(
                 { userId: user.id, tgId: user.tg_id },
                 process.env.JWT_SECRET,
                 { expiresIn: '30d' }
             );
-            return res.json({ token, user: sanitizeUser(user), message: 'Siz allaqachon tasdiqlangansiz' });
+            return res.json({ token, user: sanitizeUser(user), waitlistMode: process.env.WAITLIST_MODE === 'true', message: 'Siz allaqachon tasdiqlangansiz' });
         }
 
+        const isWaitlist = process.env.WAITLIST_MODE === 'true';
+        
         const updatedUser = await prisma.user.update({
             where: { id: user.id },
-            data: { is_verified: true, status: 'ACTIVE' }
+            data: { 
+                is_verified: true, 
+                status: 'ACTIVE',
+                ...(isWaitlist ? { is_waitlisted: true } : {})
+            }
         });
 
         const token = jwt.sign(
@@ -55,7 +73,11 @@ router.post('/verify', async (req, res) => {
             { expiresIn: '30d' }
         );
 
-        res.json({ token, user: sanitizeUser(updatedUser), message: 'Muvaffaqiyatli tasdiqlandi!' });
+        if (isWaitlist && updatedUser.role !== 'MERCHANT') {
+            return res.json({ token, user: sanitizeUser(updatedUser), waitlisted: true, waitlistMode: true, message: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz (Waitlist)!' });
+        }
+
+        res.json({ token, user: sanitizeUser(updatedUser), waitlistMode: isWaitlist, message: 'Muvaffaqiyatli tasdiqlandi!' });
     } catch (err) {
         console.error('Verify error:', err);
         res.status(500).json({ error: 'Server xatosi' });
@@ -97,6 +119,7 @@ router.post('/auth/telegram', async (req, res) => {
         const tgId = String(tgUser.id);
 
         // 3. Find or create user
+        const isWaitlist = process.env.WAITLIST_MODE === 'true';
         let user = await prisma.user.findUnique({ where: { tg_id: tgId } });
 
         if (!user) {
@@ -107,7 +130,8 @@ router.post('/auth/telegram', async (req, res) => {
                     username: tgUser.username || null,
                     is_verified: true,
                     status: 'ACTIVE',
-                    referral_code: Math.floor(100000 + Math.random() * 900000).toString()
+                    referral_code: Math.floor(100000 + Math.random() * 900000).toString(),
+                    ...(isWaitlist ? { is_waitlisted: true } : {})
                 }
             });
         }
@@ -123,7 +147,14 @@ router.post('/auth/telegram', async (req, res) => {
             { expiresIn: '30d' }
         );
 
-        res.json({ token, user: sanitizeUser(user) });
+        if (isWaitlist && user.role !== 'MERCHANT') {
+            if (!user.is_waitlisted) {
+                user = await prisma.user.update({ where: { id: user.id }, data: { is_waitlisted: true } });
+            }
+            return res.json({ token, user: sanitizeUser(user), waitlisted: true, waitlistMode: true });
+        }
+
+        res.json({ token, user: sanitizeUser(user), waitlistMode: isWaitlist });
     } catch (err) {
         console.error('Telegram auth error:', err);
         res.status(500).json({ error: 'Server xatosi' });
@@ -171,6 +202,7 @@ function sanitizeUser(user) {
         store_name: user.store_name,
         store_description: user.store_description,
         store_address: user.store_address,
+        is_waitlisted: user.is_waitlisted,
         referral_code_expires_at: user.referral_code_expires_at
     };
 }

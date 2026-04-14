@@ -30,8 +30,15 @@ model User {
   company_name    String?
   responsible_person String?
   referral_code_expires_at DateTime?
+  is_waitlisted   Boolean  @default(false)
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
+}
+
+model WaitlistView {
+  id         Int      @id @default(autoincrement())
+  tg_id      String?
+  created_at DateTime @default(now())
 }
 
 model Product {

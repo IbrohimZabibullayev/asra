@@ -14,6 +14,7 @@ function Dashboard() {
     const [botEndDate, setBotEndDate] = useState('')
     const [botFilterCount, setBotFilterCount] = useState(null)
     const [botLoading, setBotLoading] = useState(false)
+    const [waitlistToggling, setWaitlistToggling] = useState(false)
 
     useEffect(() => {
         fetchStats()
@@ -48,6 +49,26 @@ function Dashboard() {
             console.error(err)
         } finally {
             setBotLoading(false)
+        }
+    }
+
+    async function toggleWaitlistMode() {
+        setWaitlistToggling(true)
+        try {
+            const newState = !stats?.waitlistMode;
+            const res = await fetch(getApiUrl('/api/admin/waitlist-mode'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: newState })
+            })
+            if (res.ok) {
+                const data = await res.json()
+                setStats(prev => ({ ...prev, waitlistMode: data.waitlistMode }))
+            }
+        } catch(err) {
+            console.error('Waitlist toggle error:', err)
+        } finally {
+            setWaitlistToggling(false)
         }
     }
 
@@ -118,6 +139,36 @@ function Dashboard() {
                         <button onClick={() => setBotFilterCount(null)} style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer', opacity: 0.7 }}>Yopish</button>
                     </div>
                 )}
+            </div>
+
+            <div className="card" style={{ marginBottom: 24, border: '2px solid var(--c-primary)', background: 'var(--c-primary-bg)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--c-primary-dark)' }}>Yopiq Sinov (Waitlist Rejimi)</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: 4 }}>
+                            Rejim holati: <strong>{stats?.waitlistMode ? 'YOQILGAN' : 'O\'CHIRILGAN'}</strong>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--c-primary)' }}>{stats?.waitlistUsers || 0}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Ro'yxatdan o'tdi</div>
+                        </div>
+                        <div style={{ width: 1, height: 40, background: 'var(--border)' }}></div>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--c-primary)' }}>{stats?.waitlistViews || 0}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sahifani ko'rdi</div>
+                        </div>
+                        <button 
+                            className={`btn ${stats?.waitlistMode ? 'btn-outline' : 'btn-primary'}`} 
+                            onClick={toggleWaitlistMode}
+                            disabled={waitlistToggling}
+                            style={{ marginLeft: 16 }}
+                        >
+                            {waitlistToggling ? 'Kuting...' : (stats?.waitlistMode ? 'O\'chirish' : 'Yoqish')}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>

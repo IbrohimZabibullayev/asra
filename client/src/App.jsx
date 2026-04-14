@@ -10,6 +10,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import MerchantPage from './pages/MerchantPage'
 import AuthChoicePage from './pages/AuthChoicePage'
 import RegisterMerchantPage from './pages/RegisterMerchantPage'
+import WaitlistPage from './pages/WaitlistPage'
 import AddProductPage from './pages/AddProductPage'
 import EditProductPage from './pages/EditProductPage'
 import { Toaster } from 'react-hot-toast'
@@ -26,6 +27,7 @@ function App() {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [splashVisible, setSplashVisible] = useState(true)
+    const [globalWaitlistMode, setGlobalWaitlistMode] = useState(import.meta.env.VITE_WAITLIST_MODE === 'true')
 
     const theme = user?.role === 'MERCHANT' ? 'merchant' : 'customer'
 
@@ -59,7 +61,7 @@ function App() {
             });
             if (res.ok) {
                 const data = await res.json();
-                handleVerify(data.token, data.user);
+                handleVerify(data.token, data.user, data.waitlistMode);
             }
         } catch (err) {
             console.error('Telegram auto-login failed:', err);
@@ -80,6 +82,9 @@ function App() {
             if (res.ok) {
                 const data = await res.json()
                 setUser(data.user)
+                if (data.waitlistMode !== undefined) {
+                    setGlobalWaitlistMode(data.waitlistMode)
+                }
             } else {
                 localStorage.removeItem('asra_token')
                 setToken(null)
@@ -91,10 +96,13 @@ function App() {
         }
     }
 
-    function handleVerify(newToken, userData) {
+    function handleVerify(newToken, userData, waitlistMode) {
         localStorage.setItem('asra_token', newToken)
         setToken(newToken)
         setUser(userData)
+        if (waitlistMode !== undefined) {
+            setGlobalWaitlistMode(waitlistMode)
+        }
     }
 
     function handleSwitchRole(updatedUser) {
@@ -124,6 +132,8 @@ function App() {
         )
     }
 
+    const isWaitlistActive = globalWaitlistMode && user && user.role !== 'MERCHANT';
+
     return (
         <AuthContext.Provider value={{ token, user, setUser: handleSwitchRole, logout: handleLogout, fetchUser, setToken: handleVerify }}>
             <div className={`splash-container ${!splashVisible ? 'hidden' : ''}`}>
@@ -135,8 +145,14 @@ function App() {
                 </div>
             </div>
             <Toaster position="top-center" toastOptions={{ duration: 3000, style: { fontSize: '0.9rem', borderRadius: '12px' } }} />
-            <CartProvider>
+            
+            {isWaitlistActive ? (
                 <ThemeContext.Provider value={theme}>
+                    <WaitlistPage />
+                </ThemeContext.Provider>
+            ) : (
+                <CartProvider>
+                    <ThemeContext.Provider value={theme}>
                     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                         <div className="app-layout">
                             <Header />
@@ -168,7 +184,8 @@ function App() {
                         </div>
                     </BrowserRouter>
                 </ThemeContext.Provider>
-            </CartProvider>
+                </CartProvider>
+            )}
         </AuthContext.Provider>
     )
 }

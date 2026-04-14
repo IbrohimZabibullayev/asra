@@ -51,7 +51,7 @@ router.get('/me', authMiddleware, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
         }
-        res.json({ user: sanitizeUser(user) });
+        res.json({ user: sanitizeUser(user), waitlistMode: process.env.WAITLIST_MODE === 'true' });
     } catch (err) {
         console.error('Get me error:', err);
         res.status(500).json({ error: 'Server xatosi' });
