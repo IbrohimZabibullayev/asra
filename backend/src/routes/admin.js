@@ -354,6 +354,7 @@ function sanitizeUser(user) {
         inn: user.inn,
         company_name: user.company_name,
         responsible_person: user.responsible_person,
+        is_waitlisted: user.is_waitlisted,
         created_at: user.created_at
     };
 }

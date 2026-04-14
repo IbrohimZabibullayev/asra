@@ -158,7 +158,7 @@ function App() {
                             <Header />
                             <div className="app-content">
                                 <Routes>
-                                    <Route path="/" element={<Navigate to="/home" replace />} />
+                                    <Route path="/" element={<Navigate to={token ? "/home" : "/auth-choice"} replace />} />
                                     <Route path="/home" element={<HomePage />} />
                                     <Route path="/auth-choice" element={<AuthChoicePage />} />
                                     <Route path="/register-merchant" element={<RegisterMerchantPage />} />

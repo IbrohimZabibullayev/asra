@@ -71,6 +71,17 @@ router.get('/users', async (req, res) => {
     }
 });
 
+// GET /api/waitlist/stats — Get total number of waitlisted users
+router.get('/waitlist/stats', async (req, res) => {
+    try {
+        const count = await prisma.user.count({ where: { is_waitlisted: true } });
+        res.json({ count });
+    } catch (err) {
+        console.error('Waitlist stats error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
 // POST /api/apply-merchant — Submit merchant application (Can be used by Guests with code)
 router.post('/apply-merchant', async (req, res) => {
     try {
@@ -241,7 +252,8 @@ function sanitizeUser(user) {
         business_type: user.business_type,
         inn: user.inn,
         company_name: user.company_name,
-        responsible_person: user.responsible_person
+        responsible_person: user.responsible_person,
+        is_waitlisted: user.is_waitlisted
     };
 }
 

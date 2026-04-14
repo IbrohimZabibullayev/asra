@@ -122,18 +122,9 @@ router.post('/auth/telegram', async (req, res) => {
         const isWaitlist = process.env.WAITLIST_MODE === 'true';
         let user = await prisma.user.findUnique({ where: { tg_id: tgId } });
 
-        if (!user) {
-            user = await prisma.user.create({
-                data: {
-                    tg_id: tgId,
-                    full_name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Telegram Foydalanuvchisi',
-                    username: tgUser.username || null,
-                    is_verified: true,
-                    status: 'ACTIVE',
-                    referral_code: Math.floor(100000 + Math.random() * 900000).toString(),
-                    ...(isWaitlist ? { is_waitlisted: true } : {})
-                }
-            });
+        // DO NOT Auto-login if user is not verified. They must go through VerifyPage and enter code!
+        if (!user || !user.is_verified) {
+            return res.status(401).json({ error: 'Tasdiqlanmagan foydalanuvchi. Iltimos kod orqali kiring.' });
         }
 
         if (user.status === 'BLOCKED') {

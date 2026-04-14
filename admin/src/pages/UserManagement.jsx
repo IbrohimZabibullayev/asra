@@ -198,9 +198,16 @@ function UserManagement() {
                                     )}
                                 </td>
                                 <td>
-                                    <span className={user.role === 'MERCHANT' ? 'badge badge-warning' : 'badge badge-primary'} style={{ fontSize: '0.65rem' }}>
-                                        {user.role === 'MERCHANT' ? 'SOTUVCHI' : 'MIJOZ'}
-                                    </span>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                                        <span className={user.role === 'MERCHANT' ? 'badge badge-warning' : 'badge badge-primary'} style={{ fontSize: '0.65rem' }}>
+                                            {user.role === 'MERCHANT' ? 'SOTUVCHI' : 'MIJOZ'}
+                                        </span>
+                                        {user.is_waitlisted && (
+                                            <span style={{ fontSize: '0.65rem', background: '#f3e8ff', color: '#9333ea', padding: '3px 8px', borderRadius: 8, fontWeight: 700 }}>
+                                                WAITLIST
+                                            </span>
+                                        )}
+                                    </div>
                                 </td>
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

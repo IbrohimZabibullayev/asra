@@ -1,9 +1,10 @@
-import { useEffect, useContext, useMemo } from 'react';
+import { useEffect, useContext, useMemo, useState } from 'react';
 import { getApiUrl } from '../utils/api';
 import { AuthContext } from '../App';
 
 function WaitlistPage() {
     const { token } = useContext(AuthContext);
+    const [waitlistCount, setWaitlistCount] = useState(0);
 
     useEffect(() => {
         // Tracker qoshiladi
@@ -13,6 +14,12 @@ function WaitlistPage() {
                 'Authorization': `Bearer ${token}`
             }
         }).catch(err => console.error('Waitlist view tracking error:', err));
+
+        // Get waitlist count
+        fetch(getApiUrl('/api/waitlist/stats'))
+            .then(res => res.json())
+            .then(data => setWaitlistCount(data.count || 0))
+            .catch(err => console.error('Waitlist count error:', err));
     }, [token]);
 
     const animatedFoods = useMemo(() => {
@@ -85,6 +92,11 @@ function WaitlistPage() {
                 <p style={{ fontSize: '1.05rem', lineHeight: 1.5, opacity: 0.9, maxWidth: '350px', margin: '0 auto' }}>
                     Ishga tushishimiz bilan bot orqali shaxsiy taklifnoma yuboramiz. Kutganingizga arziydi.
                 </p>
+                {waitlistCount > 0 && (
+                    <div style={{ marginTop: 24, padding: '12px 24px', background: 'rgba(255,255,255,0.1)', borderRadius: 100, display: 'inline-block', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                        Hozirda <span style={{ fontWeight: 800, color: '#fcd34d', fontSize: '1.2rem' }}>{waitlistCount}</span> ta foydalanuvchi navbatda
+                    </div>
+                )}
             </div>
         </div>
     )
