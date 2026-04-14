@@ -69,7 +69,7 @@ function setupHandlers(bot) {
                 }
             });
 
-            const welcomeMsg = `🍎 *ASRA - Oziq-ovqatni Tejash Platformasi*\n\nAssalomu alaykum, *${fullName}*! 👋\n\nXush kelibsiz! Ro'yxatdan o'tishni boshlash uchun quyidagi ro'yxatdan o'z viloyatingizni tanlang:`;
+            const welcomeMsg = `🍎 *ASRA - Eksklyuziv Chegirmalar Platformasi*\n\nAssalomu alaykum, *${fullName}*! 👋\n\nXush kelibsiz! Ro'yxatdan o'tishni boshlash uchun quyidagi ro'yxatdan o'z viloyatingizni tanlang:`;
 
             const keyboard = [];
             for (let i = 0; i < REGIONS.length; i += 2) {

@@ -53,7 +53,7 @@ function VerifyPage({ onVerify }) {
             </div>
             <h1 className="verify-title">ASRA</h1>
             <p className="verify-subtitle">
-                Oziq-ovqatni Tejash Platformasi<br />
+                Eksklyuziv Chegirmalar Platformasi<br />
                 Tasdiqlash kodingizni kiriting
             </p>
 

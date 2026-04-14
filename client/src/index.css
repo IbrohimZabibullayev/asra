@@ -552,11 +552,11 @@ select {
 }
 
 .code-input {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   text-align: center;
-  letter-spacing: 1rem;
-  padding: 20px;
+  letter-spacing: 0.5rem;
+  padding: 14px;
   font-family: 'Inter', monospace;
 }
 
@@ -755,13 +755,13 @@ select {
   justify-content: center;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 40px 24px;
+  padding: 24px 16px;
   background: linear-gradient(180deg, var(--c-primary-bg) 0%, var(--bg) 50%);
 }
 
 .verify-logo {
-  font-size: 4rem;
-  margin-bottom: 16px;
+  font-size: 3rem;
+  margin-bottom: 12px;
   animation: logo-bounce 2s infinite;
 }
 
@@ -778,7 +778,7 @@ select {
 }
 
 .verify-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light));
   -webkit-background-clip: text;
