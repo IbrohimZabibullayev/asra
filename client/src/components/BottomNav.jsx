@@ -7,7 +7,7 @@ import { Home, ShoppingBag, ClipboardList, User } from 'lucide-react'
 function BottomNav() {
     const location = useLocation()
     const navigate = useNavigate()
-    const { user, token, globalWaitlistMode } = useContext(AuthContext)
+    const { user, token } = useContext(AuthContext)
     const { totalItems } = useContext(CartContext)
     const [pendingCount, setPendingCount] = useState(0)
 
@@ -40,12 +40,6 @@ function BottomNav() {
         { path: '/profile', icon: User, label: isMerchant ? 'Do\'kon' : 'Profil' },
     ]
 
-    const hideOnPaths = ['/auth-choice', '/verify', '/register-merchant'];
-    
-    // Always hide on authentication pages or when waitlist is strictly forcing guests out
-    if (hideOnPaths.includes(location.pathname) || (globalWaitlistMode && !token)) {
-        return null;
-    }
 
     return (
         <nav className="bottom-nav">

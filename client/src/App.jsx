@@ -120,7 +120,7 @@ function App() {
 
     function handleAcceptTerms() {
         localStorage.setItem(termsKey, '1')
-        setUser({ ...user }) // force re-render
+        setUser({ ...user })
     }
 
     if (loading) {
@@ -132,58 +132,100 @@ function App() {
         )
     }
 
-    const isWaitlistActive = globalWaitlistMode && user && user.role !== 'MERCHANT';
+    // ─── WAITLIST ROUTING LOGIC ───────────────────────────────────────────────
+    //
+    // CASE A: Waitlist ON + logged-in CUSTOMER → full-screen WaitlistPage, no nav
+    // CASE B: Waitlist ON + GUEST (no token)   → locked to auth pages only, no nav
+    // CASE C: Waitlist ON + MERCHANT           → normal full app (fall through)
+    // CASE D: Waitlist OFF                     → normal full app for everyone
+    //
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const isWaitlistCustomer = globalWaitlistMode && user && user.role === 'CUSTOMER'
+    const isWaitlistGuest    = globalWaitlistMode && !user
+
+    const splashEl = (
+        <div className={`splash-container ${!splashVisible ? 'hidden' : ''}`}>
+            <div className="splash-text">
+                <span className="splash-letter">A</span>
+                <span className="splash-letter">S</span>
+                <span className="splash-letter">R</span>
+                <span className="splash-letter">A</span>
+            </div>
+        </div>
+    )
+
+    const toasterEl = (
+        <Toaster position="top-center" toastOptions={{ duration: 3000, style: { fontSize: '0.9rem', borderRadius: '12px' } }} />
+    )
 
     return (
         <AuthContext.Provider value={{ token, user, setUser: handleSwitchRole, logout: handleLogout, fetchUser, setToken: handleVerify, globalWaitlistMode }}>
-            <div className={`splash-container ${!splashVisible ? 'hidden' : ''}`}>
-                <div className="splash-text">
-                    <span className="splash-letter">A</span>
-                    <span className="splash-letter">S</span>
-                    <span className="splash-letter">R</span>
-                    <span className="splash-letter">A</span>
-                </div>
-            </div>
-            <Toaster position="top-center" toastOptions={{ duration: 3000, style: { fontSize: '0.9rem', borderRadius: '12px' } }} />
-            
-            {isWaitlistActive ? (
+            {splashEl}
+            {toasterEl}
+
+            {isWaitlistCustomer ? (
+                /* CASE A: Logged-in Customer + Waitlist ON → WaitlistPage only */
                 <ThemeContext.Provider value={theme}>
                     <WaitlistPage />
                 </ThemeContext.Provider>
+
+            ) : isWaitlistGuest ? (
+                /* CASE B: Guest + Waitlist ON → only auth pages, NO BottomNav */
+                <ThemeContext.Provider value={theme}>
+                    <CartProvider>
+                        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                            <div className="app-layout">
+                                <Header />
+                                <div className="app-content">
+                                    <Routes>
+                                        <Route path="/verify" element={<VerifyPage onVerify={handleVerify} />} />
+                                        <Route path="/register-merchant" element={<RegisterMerchantPage />} />
+                                        {/* Every other path → auth-choice (register/login) */}
+                                        <Route path="*" element={<AuthChoicePage />} />
+                                    </Routes>
+                                </div>
+                                {/* Intentionally NO <BottomNav /> here */}
+                            </div>
+                        </BrowserRouter>
+                    </CartProvider>
+                </ThemeContext.Provider>
+
             ) : (
+                /* CASE C/D: Normal full app (Merchant in any mode, or Waitlist OFF) */
                 <CartProvider>
                     <ThemeContext.Provider value={theme}>
-                    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                        <div className="app-layout">
-                            <Header />
-                            <div className="app-content">
-                                <Routes>
-                                    <Route path="/" element={<Navigate to={(globalWaitlistMode && !token) ? "/auth-choice" : "/home"} replace />} />
-                                    <Route path="/home" element={<HomePage />} />
-                                    <Route path="/auth-choice" element={<AuthChoicePage />} />
-                                    <Route path="/register-merchant" element={<RegisterMerchantPage />} />
-                                    <Route path="/verify" element={<VerifyPage onVerify={handleVerify} />} />
-                                    <Route path="/add-product" element={<AddProductPage />} />
-                                    <Route path="/edit-product/:id" element={<EditProductPage />} />
-                                    <Route path="/orders" element={<OrdersPage />} />
-                                    <Route path="/profile" element={<ProfilePage />} />
-                                    <Route path="/notifications" element={<NotificationsPage />} />
-                                    <Route path="/merchant" element={<MerchantPage />} />
-                                    <Route path="/cart" element={<CartPage />} />
-                                    <Route path="*" element={<Navigate to="/home" replace />} />
-                                </Routes>
+                        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                            <div className="app-layout">
+                                <Header />
+                                <div className="app-content">
+                                    <Routes>
+                                        <Route path="/" element={<Navigate to="/home" replace />} />
+                                        <Route path="/home" element={<HomePage />} />
+                                        <Route path="/auth-choice" element={<AuthChoicePage />} />
+                                        <Route path="/register-merchant" element={<RegisterMerchantPage />} />
+                                        <Route path="/verify" element={<VerifyPage onVerify={handleVerify} />} />
+                                        <Route path="/add-product" element={<AddProductPage />} />
+                                        <Route path="/edit-product/:id" element={<EditProductPage />} />
+                                        <Route path="/orders" element={<OrdersPage />} />
+                                        <Route path="/profile" element={<ProfilePage />} />
+                                        <Route path="/notifications" element={<NotificationsPage />} />
+                                        <Route path="/merchant" element={<MerchantPage />} />
+                                        <Route path="/cart" element={<CartPage />} />
+                                        <Route path="*" element={<Navigate to="/home" replace />} />
+                                    </Routes>
+                                </div>
+                                <BottomNav />
+                                {showTermsModal && (
+                                    <TermsModal
+                                        role={user.role}
+                                        onAccept={handleAcceptTerms}
+                                        onCancel={handleLogout}
+                                    />
+                                )}
                             </div>
-                            <BottomNav />
-                            {showTermsModal && (
-                                <TermsModal
-                                    role={user.role}
-                                    onAccept={handleAcceptTerms}
-                                    onCancel={handleLogout}
-                                />
-                            )}
-                        </div>
-                    </BrowserRouter>
-                </ThemeContext.Provider>
+                        </BrowserRouter>
+                    </ThemeContext.Provider>
                 </CartProvider>
             )}
         </AuthContext.Provider>
