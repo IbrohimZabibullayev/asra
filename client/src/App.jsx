@@ -135,7 +135,7 @@ function App() {
     const isWaitlistActive = globalWaitlistMode && user && user.role !== 'MERCHANT';
 
     return (
-        <AuthContext.Provider value={{ token, user, setUser: handleSwitchRole, logout: handleLogout, fetchUser, setToken: handleVerify }}>
+        <AuthContext.Provider value={{ token, user, setUser: handleSwitchRole, logout: handleLogout, fetchUser, setToken: handleVerify, globalWaitlistMode }}>
             <div className={`splash-container ${!splashVisible ? 'hidden' : ''}`}>
                 <div className="splash-text">
                     <span className="splash-letter">A</span>
@@ -158,7 +158,7 @@ function App() {
                             <Header />
                             <div className="app-content">
                                 <Routes>
-                                    <Route path="/" element={<Navigate to={token ? "/home" : "/auth-choice"} replace />} />
+                                    <Route path="/" element={<Navigate to={(globalWaitlistMode && !token) ? "/auth-choice" : "/home"} replace />} />
                                     <Route path="/home" element={<HomePage />} />
                                     <Route path="/auth-choice" element={<AuthChoicePage />} />
                                     <Route path="/register-merchant" element={<RegisterMerchantPage />} />

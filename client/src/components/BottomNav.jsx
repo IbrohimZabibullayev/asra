@@ -7,7 +7,7 @@ import { Home, ShoppingBag, ClipboardList, User } from 'lucide-react'
 function BottomNav() {
     const location = useLocation()
     const navigate = useNavigate()
-    const { user, token } = useContext(AuthContext)
+    const { user, token, globalWaitlistMode } = useContext(AuthContext)
     const { totalItems } = useContext(CartContext)
     const [pendingCount, setPendingCount] = useState(0)
 
@@ -39,6 +39,10 @@ function BottomNav() {
         { path: '/orders', icon: ClipboardList, label: 'Buyurtmalar', badge: isMerchant ? pendingCount : 0 },
         { path: '/profile', icon: User, label: isMerchant ? 'Do\'kon' : 'Profil' },
     ]
+
+    if (globalWaitlistMode && !token) {
+        return null;
+    }
 
     return (
         <nav className="bottom-nav">
