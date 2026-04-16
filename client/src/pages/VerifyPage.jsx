@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../utils/api'
 import { Apple, CheckCircle2 } from 'lucide-react'
+import { AuthContext } from '../App'
 
 function VerifyPage({ onVerify }) {
     const [code, setCode] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+    const { globalWaitlistMode } = useContext(AuthContext)
     const navigate = useNavigate()
 
     async function handleSubmit(e) {
@@ -34,7 +36,11 @@ function VerifyPage({ onVerify }) {
                 setSuccess(data.message || 'Muvaffaqiyatli tasdiqlandi!')
                 setTimeout(() => {
                     onVerify(data.token, data.user, data.waitlistMode)
-                    navigate('/home')
+                    // Waitlist ON + CUSTOMER → don't navigate, App will show WaitlistPage
+                    // Waitlist OFF or MERCHANT → go to home
+                    if (!data.waitlistMode || data.user?.role === 'MERCHANT') {
+                        navigate('/home')
+                    }
                 }, 800)
             } else {
                 setError(data.error || 'Tasdiqlashda xatolik')

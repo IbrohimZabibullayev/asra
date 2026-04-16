@@ -36,6 +36,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 
+// Public waitlist status (no auth required — for guests)
+app.get('/api/waitlist-status', (req, res) => {
+    res.json({ waitlistMode: process.env.WAITLIST_MODE === 'true' });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', service: 'ASRA Backend', timestamp: new Date().toISOString() });

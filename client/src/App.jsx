@@ -27,7 +27,7 @@ function App() {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [splashVisible, setSplashVisible] = useState(true)
-    const [globalWaitlistMode, setGlobalWaitlistMode] = useState(import.meta.env.VITE_WAITLIST_MODE === 'true')
+    const [globalWaitlistMode, setGlobalWaitlistMode] = useState(import.meta.env.VITE_WAITLIST_MODE === 'true' || true)
 
     const theme = user?.role === 'MERCHANT' ? 'merchant' : 'customer'
 
@@ -37,6 +37,18 @@ function App() {
         }, 2200)
         return () => clearTimeout(timer)
     }, [])
+
+    // Fetch waitlist status from backend (works for both guests and logged-in users)
+    useEffect(() => {
+        fetch(getApiUrl('/api/waitlist-status'))
+            .then(r => r.json())
+            .then(data => {
+                if (data.waitlistMode !== undefined) {
+                    setGlobalWaitlistMode(data.waitlistMode);
+                }
+            })
+            .catch(() => { /* keep default */ });
+    }, []);
 
     useEffect(() => {
         if (token) {
@@ -215,7 +227,7 @@ function App() {
                                         <Route path="*" element={<Navigate to="/home" replace />} />
                                     </Routes>
                                 </div>
-                                <BottomNav />
+                                {user && <BottomNav />}
                                 {showTermsModal && (
                                     <TermsModal
                                         role={user.role}
