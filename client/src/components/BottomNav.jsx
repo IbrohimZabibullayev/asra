@@ -40,7 +40,10 @@ function BottomNav() {
         { path: '/profile', icon: User, label: isMerchant ? 'Do\'kon' : 'Profil' },
     ]
 
-    if (globalWaitlistMode && !token) {
+    const hideOnPaths = ['/auth-choice', '/verify', '/register-merchant'];
+    
+    // Always hide on authentication pages or when waitlist is strictly forcing guests out
+    if (hideOnPaths.includes(location.pathname) || (globalWaitlistMode && !token)) {
         return null;
     }
 
