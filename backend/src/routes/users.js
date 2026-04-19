@@ -26,6 +26,15 @@ router.get('/users/photo/:tg_id', async (req, res) => {
             if (botIndex !== -1) {
                 file_path = parts.slice(botIndex + 1).join('/');
             }
+        } else if (!file_path.includes('/')) {
+            // If it doesn't contain '/', it's likely a file_id. Fetch the temporary file_path
+            const getFileUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${file_path}`;
+            const fileResp = await axios.get(getFileUrl);
+            if (fileResp.data && fileResp.data.ok) {
+                file_path = fileResp.data.result.file_path;
+            } else {
+                return res.status(404).json({ error: 'Failed to resolve file_path for file_id' });
+            }
         }
 
         const telegram_url = `https://api.telegram.org/file/bot${BOT_TOKEN}/${file_path}`;

@@ -1,6 +1,7 @@
-import { useEffect, useContext, useMemo, useState } from 'react';
+import { useEffect, useContext, useMemo } from 'react';
 import { getApiUrl } from '../utils/api';
 import { AuthContext } from '../App';
+import { Pizza, Coffee, Utensils, ChefHat, Apple, Carrot, Croissant, Cake, IceCream, Cookie, Soup, Fish } from 'lucide-react';
 
 function WaitlistPage() {
     const { token } = useContext(AuthContext);
@@ -16,15 +17,21 @@ function WaitlistPage() {
     }, [token]);
 
     const animatedFoods = useMemo(() => {
-        const foods = ['🍎', '🍔', '🍕', '🥐', '🥬', '🍅', '🍉', '🥨', '🌮', '🍩', '🥑', '🥞', '🍇', '🍓', '🍑'];
-        return foods.map((food, i) => ({
-            id: i,
-            icon: food,
-            left: `${(i * 17) % 90 + 5}%`,
-            top: `${(i * 23) % 90 + 5}%`,
-            duration: `${15 + (i % 5)*4}s`,
-            delay: `-${(i % 7)*3}s`
-        }));
+        const icons = [Pizza, Coffee, Utensils, ChefHat, Apple, Carrot, Croissant, Cake, IceCream, Cookie, Soup, Fish, Pizza, Coffee, Apple];
+        return icons.map((IconClass, i) => {
+            const size = 20 + (i * 13 % 45); // sizes between 20 and 65
+            const opacity = 0.05 + (i * 7 % 20) / 100; // opacity between 0.05 and 0.24
+            return {
+                id: i,
+                Icon: IconClass,
+                size: size,
+                left: `${(i * 17) % 90 + 5}%`,
+                top: `${(i * 23) % 90 + 5}%`,
+                duration: `${20 + (i % 5)*5}s`,
+                delay: `-${(i % 7)*3}s`,
+                opacity: opacity
+            };
+        });
     }, []);
 
     return (
@@ -47,18 +54,16 @@ function WaitlistPage() {
             
             <style>
                 {`
-                @keyframes float-food {
-                    0% { transform: translate(0, 0) rotate(0deg); }
-                    25% { transform: translate(15px, -20px) rotate(10deg); }
-                    50% { transform: translate(30px, 0px) rotate(20deg); }
-                    75% { transform: translate(15px, 20px) rotate(10deg); }
-                    100% { transform: translate(0, 0) rotate(0deg); }
+                @keyframes float-complex {
+                    0% { transform: translateY(0px) translateX(0px) rotate(0deg) scale(1); }
+                    25% { transform: translateY(-40px) translateX(25px) rotate(20deg) scale(1.1); }
+                    50% { transform: translateY(-10px) translateX(50px) rotate(5deg) scale(0.9); }
+                    75% { transform: translateY(30px) translateX(20px) rotate(-15deg) scale(1.05); }
+                    100% { transform: translateY(0px) translateX(0px) rotate(0deg) scale(1); }
                 }
                 .food-icon {
                     position: absolute;
-                    font-size: 2.5rem;
-                    opacity: 0.15;
-                    animation: float-food linear infinite;
+                    animation: float-complex ease-in-out infinite alternate;
                     pointer-events: none;
                 }
                 `}
@@ -69,9 +74,10 @@ function WaitlistPage() {
                     left: item.left,
                     top: item.top,
                     animationDuration: item.duration,
-                    animationDelay: item.delay
+                    animationDelay: item.delay,
+                    opacity: item.opacity
                 }}>
-                    {item.icon}
+                    <item.Icon size={item.size} strokeWidth={1.5} color="white" />
                 </div>
             ))}
 
