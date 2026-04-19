@@ -19,6 +19,9 @@ import Header from './components/Header'
 import { CartProvider } from './context/CartContext'
 import TermsModal from './components/TermsModal'
 
+import InfoPage from './pages/InfoPage'
+import DemoPage from './pages/DemoPage'
+
 export const AuthContext = createContext(null)
 export const ThemeContext = createContext(null)
 
@@ -26,16 +29,19 @@ function App() {
     const [token, setToken] = useState(localStorage.getItem('asra_token'))
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [splashVisible, setSplashVisible] = useState(true)
+    const [splashVisible, setSplashVisible] = useState(() => !sessionStorage.getItem('splash_shown'))
     const [globalWaitlistMode, setGlobalWaitlistMode] = useState(import.meta.env.VITE_WAITLIST_MODE === 'true' || true)
 
     const theme = user?.role === 'MERCHANT' ? 'merchant' : 'customer'
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setSplashVisible(false)
-        }, 2200)
-        return () => clearTimeout(timer)
+        if (!sessionStorage.getItem('splash_shown')) {
+            const timer = setTimeout(() => {
+                setSplashVisible(false)
+                sessionStorage.setItem('splash_shown', '1')
+            }, 2200)
+            return () => clearTimeout(timer)
+        }
     }, [])
 
     // Fetch waitlist status from backend (works for both guests and logged-in users)
@@ -142,6 +148,13 @@ function App() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Yuklanmoqda...</p>
             </div>
         )
+    }
+
+    if (window.location.pathname === '/info') {
+        return <InfoPage />
+    }
+    if (window.location.pathname === '/demo') {
+        return <DemoPage />
     }
 
     // ─── WAITLIST ROUTING LOGIC ───────────────────────────────────────────────

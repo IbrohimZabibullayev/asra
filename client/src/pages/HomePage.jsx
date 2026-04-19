@@ -5,8 +5,6 @@ import ProductCard from '../components/ProductCard'
 import AuthModal from '../components/AuthModal'
 import { Flame, Sparkles, MapPin } from 'lucide-react'
 
-
-
 function calculateDistance(lat1, lon1, lat2, lon2) {
     if (!lat1 || !lon1 || !lat2 || !lon2) return null;
     const R = 6371; // Radius of the earth in km
