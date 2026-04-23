@@ -17,13 +17,18 @@ function UserManagement() {
 
     async function fetchUsers() {
         try {
+            setLoading(true)
             const res = await fetch(getApiUrl('/api/admin/users'))
+            const data = await res.json()
+            
             if (res.ok) {
-                const data = await res.json()
-                setUsers(data.users)
+                setUsers(data.users || [])
+            } else {
+                toast.error(data.error || 'Foydalanuvchilarni yuklab bo\'lmadi')
             }
         } catch (err) {
             console.error('Fetch users error:', err)
+            toast.error('Server bilan bog\'lanishda xatolik')
         } finally {
             setLoading(false)
         }
@@ -72,12 +77,17 @@ function UserManagement() {
     }
 
     const filteredUsers = users.filter(u => {
+        const userRole = (u.role || '').toUpperCase()
         const matchesFilter = filter === 'all' ||
-            (filter === 'merchant' && u.role === 'MERCHANT') ||
-            (filter === 'customer' && u.role === 'CUSTOMER')
-        const matchesSearch = u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (filter === 'merchant' && userRole === 'MERCHANT') ||
+            (filter === 'customer' && userRole === 'CUSTOMER')
+        
+        const searchLower = searchTerm.toLowerCase()
+        const matchesSearch = !searchTerm || 
+            u.full_name?.toLowerCase().includes(searchLower) ||
             u.phone?.includes(searchTerm) ||
-            u.tg_id?.includes(searchTerm)
+            u.tg_id?.toString().includes(searchTerm)
+            
         return matchesFilter && matchesSearch
     })
 
@@ -251,8 +261,16 @@ function UserManagement() {
                             </tr>
                         )) : (
                             <tr>
-                                <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                                    Foydalanuvchilar topilmadi
+                                <td colSpan="7" style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
+                                    <div style={{ marginBottom: 12 }}>
+                                        <Users size={48} strokeWidth={1} style={{ opacity: 0.3 }} />
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>Foydalanuvchilar topilmadi</div>
+                                    <div style={{ fontSize: '0.85rem', marginTop: 4 }}>
+                                        {users.length > 0 
+                                            ? `Filtrga mos keladigan foydalanuvchi yo'q (Jami: ${users.length} ta)` 
+                                            : "Hali hech kim ro'yxatdan o'tmagan yoki ma'lumotlarni yuklab bo'lmadi."}
+                                    </div>
                                 </td>
                             </tr>
                         )}

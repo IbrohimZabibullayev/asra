@@ -33,13 +33,25 @@ router.get('/products', async (req, res) => {
 // GET /api/admin/users — List all users
 router.get('/users', async (req, res) => {
     try {
+        console.log('[Admin] Fetching all users...');
         const users = await prisma.user.findMany({
             orderBy: { created_at: 'desc' }
         });
-        res.json({ users: users.map(sanitizeUser) });
+        
+        const sanitizedUsers = users.map(user => {
+            try {
+                return sanitizeUser(user);
+            } catch (err) {
+                console.error(`[Admin] Error sanitizing user ${user.id}:`, err);
+                return null;
+            }
+        }).filter(Boolean);
+
+        console.log(`[Admin] Found ${users.length} users, sanitized ${sanitizedUsers.length}`);
+        res.json({ users: sanitizedUsers });
     } catch (err) {
         console.error('Admin users error:', err);
-        res.status(500).json({ error: 'Server xatosi' });
+        res.status(500).json({ error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi: ' + err.message });
     }
 });
 
