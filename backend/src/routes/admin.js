@@ -11,10 +11,19 @@ router.get('/pending-stores', async (req, res) => {
             where: { merchant_status: 'PENDING' },
             orderBy: { updated_at: 'desc' }
         });
-        res.json({ stores: pendingUsers.map(sanitizeUser) });
+        const sanitizedStores = pendingUsers.map(user => {
+            try {
+                return sanitizeUser(user);
+            } catch (err) {
+                console.error(`[Admin] Error sanitizing pending store user ${user.id}:`, err.message);
+                return null;
+            }
+        }).filter(Boolean);
+
+        res.json({ stores: sanitizedStores });
     } catch (err) {
-        console.error('Pending stores error:', err);
-        res.status(500).json({ error: 'Server xatosi' });
+        console.error('[Admin] Pending stores error:', err);
+        res.status(500).json({ error: 'Arizalarni yuklashda xatolik yuz berdi', details: err.message });
     }
 });
 // GET /api/admin/products — List all products across the platform
@@ -33,25 +42,34 @@ router.get('/products', async (req, res) => {
 // GET /api/admin/users — List all users
 router.get('/users', async (req, res) => {
     try {
-        console.log('[Admin] Fetching all users...');
+        console.log('[Admin] Fetching all users from database...');
         const users = await prisma.user.findMany({
             orderBy: { created_at: 'desc' }
         });
         
+        if (!users) {
+            console.warn('[Admin] No users found in database (null result)');
+            return res.json({ users: [] });
+        }
+
         const sanitizedUsers = users.map(user => {
             try {
                 return sanitizeUser(user);
             } catch (err) {
-                console.error(`[Admin] Error sanitizing user ${user.id}:`, err);
+                console.error(`[Admin] Error sanitizing user ID ${user?.id}:`, err.message);
                 return null;
             }
         }).filter(Boolean);
 
-        console.log(`[Admin] Found ${users.length} users, sanitized ${sanitizedUsers.length}`);
+        console.log(`[Admin] Success: Found ${users.length} users, sanitized ${sanitizedUsers.length} users.`);
         res.json({ users: sanitizedUsers });
     } catch (err) {
-        console.error('Admin users error:', err);
-        res.status(500).json({ error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi: ' + err.message });
+        console.error('[Admin] Fatal error in /users route:', err);
+        res.status(500).json({ 
+            error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi', 
+            details: err.message,
+            code: err.code
+        });
     }
 });
 
@@ -241,8 +259,8 @@ router.get('/stats', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Stats error:', err);
-        res.status(500).json({ error: 'Server xatosi' });
+        console.error('[Admin] Stats error:', err);
+        res.status(500).json({ error: 'Statistikalarni yuklashda xatolik yuz berdi', details: err.message });
     }
 });
 

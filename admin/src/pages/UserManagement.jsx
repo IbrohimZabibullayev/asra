@@ -24,7 +24,8 @@ function UserManagement() {
             if (res.ok) {
                 setUsers(data.users || [])
             } else {
-                toast.error(data.error || 'Foydalanuvchilarni yuklab bo\'lmadi')
+                const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Foydalanuvchilarni yuklab bo\'lmadi');
+                toast.error(errorMsg)
             }
         } catch (err) {
             console.error('Fetch users error:', err)
