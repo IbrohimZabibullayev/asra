@@ -23,7 +23,8 @@ router.get('/pending-stores', async (req, res) => {
         res.json({ stores: sanitizedStores });
     } catch (err) {
         console.error('[Admin] Pending stores error:', err);
-        res.status(500).json({ error: 'Arizalarni yuklashda xatolik yuz berdi', details: err.message });
+        // Changed to 400 so proxy doesn't mask the error
+        res.status(400).json({ error: 'Arizalarni yuklashda xatolik yuz berdi', details: err.message, code: err.code });
     }
 });
 // GET /api/admin/products — List all products across the platform
@@ -65,9 +66,10 @@ router.get('/users', async (req, res) => {
         res.json({ users: sanitizedUsers });
     } catch (err) {
         console.error('[Admin] Fatal error in /users route:', err);
-        res.status(500).json({ 
+        // Changed to 400 so proxy doesn't mask the error
+        res.status(400).json({ 
             error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi', 
-            details: err.message,
+            details: err.message || err.toString(),
             code: err.code
         });
     }

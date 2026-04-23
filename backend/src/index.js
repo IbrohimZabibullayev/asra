@@ -55,7 +55,7 @@ initBot();
 // Global Error Handler
 app.use((err, req, res, next) => {
     console.error('Unhandled Error:', err);
-    res.status(500).json({
+    res.status(400).json({
         error: 'Ichki server xatosi (Global)',
         details: err.message,
         path: req.path,
