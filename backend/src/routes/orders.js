@@ -83,18 +83,22 @@ router.post('/', authMiddleware, async (req, res) => {
                         }
                     });
 
-                    // Send Telegram Alert to Merchant
-                    const botToken = process.env.BOT_TOKEN;
-                    if (botToken) {
-                        const tgMessage = `🎉 *Yangi Buyurtma!* 🎉\n\n👤 Mijoz: _${customer.full_name}_\n📞 Tel: ${customer.phone}\n💳 Summa: ${merchantTotal.toLocaleString()} so'm\n\nIltimos, ilovangizga kirib buyurtmani imkon qadar tezroq tayyorlang!`;
-                        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chat_id: merchant_id, text: tgMessage, parse_mode: 'Markdown' })
-                        });
+                    // Send Telegram Alert to Merchant using Smart Geolocation
+                    const { getBot } = require('../telegram-bot/bot');
+                    const { sendOrderNotification } = require('../telegram-bot/handlers');
+                    
+                    const bot = getBot();
+                    if (bot) {
+                        // First send the text details
+                        const tgDetails = `🎉 *Yangi Buyurtma!* 🎉\n\n👤 Mijoz: _${customer.full_name}_\n📞 Tel: ${customer.phone}\n💳 Summa: ${merchantTotal.toLocaleString()} so'm\n\nIltimos, mijozga lokatsiya yuboring:`;
+                        
+                        await bot.sendMessage(merchant_id, tgDetails, { parse_mode: 'Markdown' });
+                        
+                        // Then send the interactive geolocation buttons
+                        await sendOrderNotification(bot, merchant_id, merchant_id);
                     }
                 } catch (notifierErr) {
-                    console.error('Merchant notification failed:', merchant_id);
+                    console.error('Merchant notification failed:', merchant_id, notifierErr.message);
                 }
             }
         }

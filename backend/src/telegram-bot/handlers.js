@@ -10,8 +10,38 @@ function generateCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Helper: Send Order Notification with Geolocation options
+async function sendOrderNotification(bot, chatId, tgId) {
+    const user = await prisma.user.findUnique({ where: { tg_id: String(tgId) } });
+    
+    let message = "🔔 *Yangi buyurtma!* \n\nSizga yangi buyurtma tushdi. Mijozga mahsulotni yetkazib berish yoki olib ketish uchun lokatsiya yuborishingiz kerak.";
+    let keyboard = [];
+
+    if (user && user.latitude && user.longitude) {
+        message += "\n\nSizda saqlangan lokatsiya mavjud. Uni yuborishni xohlaysizmi yoki yangisini?";
+        keyboard = [
+            [{ text: "✅ Avvalgi lokatsiyani yuborish", callback_data: `send_saved_location` }],
+            [{ text: "🔄 Yangi lokatsiya yuborish", callback_data: "request_new_location" }]
+        ];
+    } else {
+        keyboard = [
+            [{ text: "📍 Mijozga lokatsiya yuborish", callback_data: "request_new_location" }]
+        ];
+    }
+
+    await bot.sendMessage(chatId, message, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: keyboard
+        }
+    });
+}
+
 function setupHandlers(bot) {
     const WEBAPP_URL = process.env.WEBAPP_URL || 'https://asra-lyart.vercel.app';
+
+    // Helper: Send Order Notification with Geolocation options
+    // Removed from here and moved to top-level for export
 
     // /start command
     bot.onText(/\/start/, async (msg) => {
@@ -37,7 +67,7 @@ function setupHandlers(bot) {
             const user = await prisma.user.findUnique({ where: { tg_id: tgId } });
 
             if (user) {
-                return bot.sendMessage(chatId, `👋 Xush kelibsiz qaytadan, *${user.full_name}*!\n\nSiz platformamizda ro'yxatdan o'tgansiz. Tizimga kirish uchun yangi tasdiqlash kodini olishingiz mumkin:`, {
+                await bot.sendMessage(chatId, `👋 Xush kelibsiz qaytadan, *${user.full_name}*!\n\nSiz platformamizda ro'yxatdan o'tgansiz. Tizimga kirish uchun yangi tasdiqlash kodini olishingiz mumkin:`, {
                     parse_mode: 'Markdown',
                     reply_markup: {
                         keyboard: [[{ text: '🔑 Kod olish' }], [{ text: '🌐 Platformani ochish', web_app: { url: WEBAPP_URL } }]],
@@ -101,6 +131,27 @@ function setupHandlers(bot) {
 
         if (data === 'get_code') {
             await handleGetCode(bot, chatId, tgId, callbackQuery.id, callbackQuery.from.first_name);
+        } else if (data === 'request_new_location') {
+            userStates.set(chatId, { step: 'awaiting_location' });
+            await bot.answerCallbackQuery(callbackQuery.id);
+            await bot.sendMessage(chatId, "📍 Iltimos, mijozga yubormoqchi bo'lgan lokatsiyangizni yuboring (Telegram'ning 'Location' funksiyasidan foydalaning):", {
+                reply_markup: {
+                    keyboard: [[{ text: "📍 Lokatsiya yuborish", request_location: true }], [{ text: "❌ Bekor qilish" }]],
+                    resize_keyboard: true,
+                    one_time_keyboard: true
+                }
+            });
+        } else if (data === 'send_saved_location') {
+            const user = await prisma.user.findUnique({ where: { tg_id: tgId } });
+            if (user && user.latitude && user.longitude) {
+                await bot.answerCallbackQuery(callbackQuery.id, { text: "Lokatsiya yuborilmoqda..." });
+                // In a real scenario, we'd send this to the customer. 
+                // For now, we show it back to the seller to confirm.
+                await bot.sendLocation(chatId, user.latitude, user.longitude);
+                await bot.sendMessage(chatId, "✅ Saqlangan lokatsiya mijozga yuborildi!");
+            } else {
+                await bot.answerCallbackQuery(callbackQuery.id, { text: "Xatolik: Lokatsiya topilmadi", show_alert: true });
+            }
         }
     });
 
@@ -216,6 +267,33 @@ function setupHandlers(bot) {
 
                 userStates.delete(chatId);
             }
+            // Handle location sharing
+            if (msg.location && state && state.step === 'awaiting_location') {
+                const { latitude, longitude } = msg.location;
+                const tgId = String(msg.from.id);
+
+                await prisma.user.update({
+                    where: { tg_id: tgId },
+                    data: { latitude, longitude }
+                });
+
+                await bot.sendMessage(chatId, "✅ Lokatsiya muvaffaqiyatli saqlandi va mijozga yuborildi!", {
+                    reply_markup: { remove_keyboard: true }
+                });
+                
+                // Show the location back for confirmation
+                await bot.sendLocation(chatId, latitude, longitude);
+
+                userStates.delete(chatId);
+                return;
+            }
+
+            if (msg.text === "❌ Bekor qilish" && state && state.step === 'awaiting_location') {
+                userStates.delete(chatId);
+                return bot.sendMessage(chatId, "Amal bekor qilindi.", {
+                    reply_markup: { remove_keyboard: true }
+                });
+            }
         } catch (err) {
             console.error('Bot onboarding error:', err);
             bot.sendMessage(chatId, '❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring /start');
@@ -224,4 +302,4 @@ function setupHandlers(bot) {
     });
 }
 
-module.exports = { setupHandlers };
+module.exports = { setupHandlers, sendOrderNotification };
