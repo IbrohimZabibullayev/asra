@@ -43,33 +43,24 @@ router.get('/products', async (req, res) => {
 // GET /api/admin/users — List all users
 router.get('/users', async (req, res) => {
     try {
-        console.log('[Admin] Fetching all users from database...');
-        const users = await prisma.user.findMany({
-            orderBy: { created_at: 'desc' }
-        });
+        console.log('[Admin] Fetching users (minimal query)...');
+        const users = await prisma.user.findMany(); // Removed orderBy
         
-        if (!users) {
-            console.warn('[Admin] No users found in database (null result)');
-            return res.json({ users: [] });
-        }
-
         const sanitizedUsers = users.map(user => {
             try {
                 return sanitizeUser(user);
             } catch (err) {
-                console.error(`[Admin] Error sanitizing user ID ${user?.id}:`, err.message);
-                return null;
+                return { id: user.id, full_name: 'Sanitization Error', role: 'ERROR' };
             }
-        }).filter(Boolean);
+        });
 
-        console.log(`[Admin] Success: Found ${users.length} users, sanitized ${sanitizedUsers.length} users.`);
-        res.json({ users: sanitizedUsers });
+        res.json({ users: sanitizedUsers, success: true });
     } catch (err) {
-        console.error('[Admin] Fatal error in /users route:', err);
-        // Changed to 400 so proxy doesn't mask the error
-        res.status(400).json({ 
-            error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi', 
-            details: err.message || err.toString(),
+        console.error('[Admin] Minimal users fetch error:', err);
+        res.json({ 
+            success: false,
+            error: 'Foydalanuvchilarni yuklashda xatolik', 
+            details: err.message || String(err),
             code: err.code
         });
     }

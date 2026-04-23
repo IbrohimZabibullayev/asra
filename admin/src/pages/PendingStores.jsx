@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getApiUrl, getImageUrl } from '../utils/api'
 import { Clock, Check, X, Store, User, MapPin, FileText, BadgeCheck, Building2, Phone, ArrowUpRight, AlertCircle } from 'lucide-react'
+import { toast } from 'react-toastify'
 
 function PendingStores() {
     const [stores, setStores] = useState([])
@@ -12,13 +13,19 @@ function PendingStores() {
 
     async function fetchStores() {
         try {
+            setLoading(true)
             const res = await fetch(getApiUrl('/api/admin/pending-stores'))
-            if (res.ok) {
-                const data = await res.json()
-                setStores(data.stores)
+            const data = await res.json()
+            
+            if (res.ok && data.success !== false) {
+                setStores(data.stores || [])
+            } else {
+                const errorMsg = data.details ? `Xatolik: ${data.details}` : (data.error || 'Arizalarni yuklab bo\'lmadi');
+                toast.error(errorMsg, { autoClose: 10000 });
             }
         } catch (err) {
             console.error('Fetch stores error:', err)
+            toast.error('Server bilan bog\'lanishda xatolik')
         } finally {
             setLoading(false)
         }

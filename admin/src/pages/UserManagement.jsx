@@ -21,11 +21,11 @@ function UserManagement() {
             const res = await fetch(getApiUrl('/api/admin/users'))
             const data = await res.json()
             
-            if (res.ok) {
+            if (res.ok && data.success !== false) {
                 setUsers(data.users || [])
             } else {
                 const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Foydalanuvchilarni yuklab bo\'lmadi');
-                toast.error(errorMsg)
+                toast.error(errorMsg, { autoClose: 10000 }); // Keep toast for 10s to ensure user sees it
             }
         } catch (err) {
             console.error('Fetch users error:', err)
