@@ -15,7 +15,6 @@ router.get('/pending-stores', async (req, res) => {
             try {
                 return sanitizeUser(user);
             } catch (err) {
-                console.error(`[Admin] Error sanitizing pending store user ${user.id}:`, err.message);
                 return null;
             }
         }).filter(Boolean);
@@ -23,8 +22,7 @@ router.get('/pending-stores', async (req, res) => {
         res.json({ stores: sanitizedStores });
     } catch (err) {
         console.error('[Admin] Pending stores error:', err);
-        // Changed to 400 so proxy doesn't mask the error
-        res.status(400).json({ error: 'Arizalarni yuklashda xatolik yuz berdi', details: err.message, code: err.code });
+        res.status(500).json({ error: 'Arizalarni yuklashda xatolik yuz berdi', details: err.message });
     }
 });
 // GET /api/admin/products — List all products across the platform
@@ -43,25 +41,26 @@ router.get('/products', async (req, res) => {
 // GET /api/admin/users — List all users
 router.get('/users', async (req, res) => {
     try {
-        console.log('[Admin] Fetching users (minimal query)...');
-        const users = await prisma.user.findMany(); // Removed orderBy
+        console.log('[Admin] Fetching users...');
+        const users = await prisma.user.findMany({
+            orderBy: { created_at: 'desc' }
+        });
         
         const sanitizedUsers = users.map(user => {
             try {
                 return sanitizeUser(user);
             } catch (err) {
-                return { id: user.id, full_name: 'Sanitization Error', role: 'ERROR' };
+                console.error(`[Admin] Error sanitizing user ${user.id}:`, err);
+                return null;
             }
-        });
+        }).filter(Boolean);
 
-        res.json({ users: sanitizedUsers, success: true });
+        res.json({ users: sanitizedUsers });
     } catch (err) {
-        console.error('[Admin] Minimal users fetch error:', err);
-        res.json({ 
-            success: false,
-            error: 'Foydalanuvchilarni yuklashda xatolik', 
-            details: err.message || String(err),
-            code: err.code
+        console.error('[Admin] Fatal error in /users route:', err);
+        res.status(500).json({ 
+            error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi', 
+            details: err.message
         });
     }
 });
