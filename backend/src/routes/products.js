@@ -1,21 +1,22 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/products — List all active products from APPROVED merchants
 router.get('/', async (req, res) => {
     try {
         const { region, merchant_id } = req.query;
-
+        console.log(`[Products] Fetching products for region: ${region}, merchant_id: ${merchant_id}`);
+        
         // Find all approved merchants to filter products
         const approvedMerchants = await prisma.user.findMany({
             where: { merchant_status: 'APPROVED' },
             select: { tg_id: true }
         });
         const approvedIds = approvedMerchants.map(m => m.tg_id);
+        console.log(`[Products] Approved Merchant IDs:`, approvedIds);
 
         const where = {
             is_active: true,
@@ -26,7 +27,8 @@ router.get('/', async (req, res) => {
 
         if (region) {
             const cleanRegion = region.replace(/ viloyati| sh\.| R\./gi, '').trim();
-            where.region = { contains: cleanRegion };
+            where.region = { contains: cleanRegion, mode: 'insensitive' };
+            console.log(`[Products] Filtering by region: ${cleanRegion}`);
         }
         if (merchant_id) where.merchant_id = merchant_id;
 
@@ -34,10 +36,11 @@ router.get('/', async (req, res) => {
             where,
             orderBy: { created_at: 'desc' }
         });
+        console.log(`[Products] Returning ${products.length} products`);
         res.json({ products });
     } catch (err) {
-        console.error('Get products error:', err);
-        res.status(500).json({ error: 'Server xatosi' });
+        console.error('[Products] Get products error details:', err);
+        res.status(500).json({ error: 'Server xatosi', details: err.message });
     }
 });
 
@@ -130,6 +133,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
             : 0;
 
         const updatedStock = stock !== undefined ? parseFloat(stock) : product.stock;
+        // If stock is increased to > 0, we should probably auto-activate it unless explicitly set to false
         const updatedIsActive = is_active !== undefined ? is_active : (updatedStock > 0);
 
         product = await prisma.product.update({

@@ -1,9 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // POST /api/orders — Create a new order
 router.post('/', authMiddleware, async (req, res) => {
@@ -95,7 +94,7 @@ router.post('/', authMiddleware, async (req, res) => {
                         await bot.sendMessage(merchant_id, tgDetails, { parse_mode: 'Markdown' });
                         
                         // Then send the interactive geolocation buttons
-                        await sendOrderNotification(bot, merchant_id, merchant_id);
+                        await sendOrderNotification(bot, merchant_id, merchant_id, customer.tg_id);
                     }
                 } catch (notifierErr) {
                     console.error('Merchant notification failed:', merchant_id, notifierErr.message);

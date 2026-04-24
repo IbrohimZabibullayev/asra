@@ -199,7 +199,14 @@ function EditProductPage() {
                                 className="input"
                                 style={inputStyle}
                                 value={formData.stock}
-                                onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    setFormData({ 
+                                        ...formData, 
+                                        stock: val,
+                                        is_active: parseFloat(val) > 0 ? true : formData.is_active 
+                                    })
+                                }}
                             />
                         </div>
                         <div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, Store, MapPin, FileText, Send, Building2, User, Phone, CheckCircle2, ChevronRight, ChevronLeft, Upload } from 'lucide-react'
+import { getApiUrl } from '../utils/api'
 
 const REGIONS_DATA = {
     'Toshkent': ['Yunusobod', 'Chilonzor', 'Mirzo Ulug\'bek', 'Yashnobod', 'Mirobod', 'Shayxontohur', 'Olmazor', 'Sergeli', 'Yakkasaroy', 'Uchtepa', 'Bektemir'],
@@ -33,7 +34,7 @@ function MerchantForm({ token, onClose, onApplied }) {
         setLoading(true)
         setError('')
         try {
-            const res = await fetch('/api/apply-merchant', {
+            const res = await fetch(getApiUrl('/api/apply-merchant'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

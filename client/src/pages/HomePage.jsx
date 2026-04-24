@@ -1,9 +1,9 @@
-import { useState, useEffect, useContext, useMemo } from 'react'
+import { useState, useEffect, useContext, useMemo, useRef } from 'react'
 import { AuthContext } from '../App'
 import { getApiUrl } from '../utils/api'
 import ProductCard from '../components/ProductCard'
 import AuthModal from '../components/AuthModal'
-import { Flame, Sparkles, MapPin } from 'lucide-react'
+import { Flame, Sparkles, MapPin, ChevronLeft } from 'lucide-react'
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     if (!lat1 || !lon1 || !lat2 || !lon2) return null;
@@ -19,6 +19,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 function HomePage() {
+    const sliderRef = useRef(null);
     const { user, token, setToken } = useContext(AuthContext)
     const [products, setProducts] = useState([])
     const [showAuthModal, setShowAuthModal] = useState(false)
@@ -34,7 +35,6 @@ function HomePage() {
                 });
             }, (error) => {
                 console.warn("Geolocation denied");
-                // Optional: set a flag to show a message to the user about why distances aren't shown
             });
         }
     }, [])
@@ -57,10 +57,10 @@ function HomePage() {
 
     // Smooth Auto-Slider
     useEffect(() => {
-        const slider = document.querySelector('.scroll-row');
-        if (!slider) return;
-
         const interval = setInterval(() => {
+            const slider = sliderRef.current;
+            if (!slider) return;
+
             const maxScroll = slider.scrollWidth - slider.clientWidth;
             if (slider.scrollLeft >= maxScroll - 5) {
                 slider.scrollTo({ left: 0, behavior: 'smooth' });
@@ -78,17 +78,16 @@ function HomePage() {
         return products.filter(p => p.region && p.region.includes(userRegion));
     }, [user, products]);
 
-    // Trending Slider Logic: 15km radius OR Newest (first 5 within region if no location)
+    // Trending Slider Logic
     const trendingProducts = useMemo(() => {
         if (!userCoords) {
-            // No location? Just show newest in region
             return [...regionalProducts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
         }
 
         return regionalProducts.map(p => ({
             ...p,
             distance: calculateDistance(userCoords.lat, userCoords.lng, p.lat, p.lng)
-        })).filter(p => p.distance <= 15 || (new Date() - new Date(p.created_at)) < 86400000) // 15km OR last 24h
+        })).filter(p => p.distance <= 15 || (new Date() - new Date(p.created_at)) < 86400000)
             .sort((a, b) => a.distance - b.distance)
             .slice(0, 6);
     }, [regionalProducts, userCoords]);
@@ -105,7 +104,7 @@ function HomePage() {
                         <MapPin size={12} /> Hozirgi joylashuvingiz bo'yicha saralandi
                     </div>
                 )}
-                <div className="scroll-row">
+                <div className="scroll-row" ref={sliderRef}>
                     {trendingProducts.length > 0 ? (
                         trendingProducts.map(product => (
                             <ProductCard

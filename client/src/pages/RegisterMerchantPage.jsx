@@ -190,7 +190,7 @@ function RegisterMerchantPage() {
                         <div style={{ marginTop: 24, textAlign: 'center' }}>
                             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Allaqachon do'koningiz bormi? </span>
                             <span 
-                                onClick={() => navigate('/verify')} 
+                                onClick={() => navigate('/verify', { state: { intendedRole: 'MERCHANT' } })} 
                                 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--active-primary)', cursor: 'pointer', textDecoration: 'underline' }}
                             >
                                 Bu yerdan kiring

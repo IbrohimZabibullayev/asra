@@ -28,8 +28,10 @@ app.use((req, res, next) => {
 });
 
 // Routes
+console.log('[Index] Registering routes...');
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
+console.log('[Index] Auth and User routes registered');
 app.use('/api/admin', adminRoutes);
 app.use('/api/bot', botRoutes);
 app.use('/api/products', productRoutes);
@@ -38,11 +40,13 @@ app.use('/api/upload', uploadRoutes);
 
 // Public waitlist status (no auth required — for guests)
 app.get('/api/waitlist-status', (req, res) => {
+    console.log('[Index] GET /api/waitlist-status reached');
     res.json({ waitlistMode: process.env.WAITLIST_MODE === 'true' });
 });
 
 // Health check
 app.get('/api/health', (req, res) => {
+    console.log('[Index] GET /api/health reached');
     res.json({ status: 'ok', service: 'ASRA Backend', timestamp: new Date().toISOString() });
 });
 

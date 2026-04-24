@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/admin/pending-stores — List pending merchant applications
 router.get('/pending-stores', async (req, res) => {

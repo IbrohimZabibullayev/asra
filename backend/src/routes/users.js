@@ -1,11 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 const { authMiddleware } = require('../middleware/auth');
 const axios = require('axios');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const BOT_TOKEN = process.env.BOT_TOKEN;
 
 // GET /api/users/photo/:tg_id — Proxy Telegram profile photo
@@ -93,6 +92,7 @@ router.get('/waitlist/stats', async (req, res) => {
 
 // POST /api/apply-merchant — Submit merchant application (Can be used by Guests with code)
 router.post('/apply-merchant', async (req, res) => {
+    console.log(`[Users] POST /apply-merchant reached. Body:`, req.body);
     try {
         const authHeader = req.headers.authorization;
         let userId = null;
@@ -262,7 +262,10 @@ function sanitizeUser(user) {
         inn: user.inn,
         company_name: user.company_name,
         responsible_person: user.responsible_person,
-        is_waitlisted: user.is_waitlisted
+        is_waitlisted: user.is_waitlisted,
+        invite_code: user.invite_code,
+        invite_code_expires_at: user.invite_code_expires_at,
+        parent_merchant_id: user.parent_merchant_id
     };
 }
 

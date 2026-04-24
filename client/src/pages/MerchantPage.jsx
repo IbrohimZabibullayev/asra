@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import { AuthContext } from '../App'
 import { getApiUrl, getImageUrl } from '../utils/api'
-import { ChevronLeft, Plus, Package } from 'lucide-react'
+import { ChevronLeft, Plus, Package, UserPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function MerchantPage() {
@@ -9,6 +9,9 @@ function MerchantPage() {
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
+    const [inviteCode, setInviteCode] = useState(null)
+    const [generatingInvite, setGeneratingInvite] = useState(false)
+    const [timeLeft, setTimeLeft] = useState(0)
 
     useEffect(() => {
         fetchProducts()
@@ -29,6 +32,34 @@ function MerchantPage() {
             setLoading(false)
         }
     }
+
+    async function handleGenerateInvite() {
+        setGeneratingInvite(true)
+        try {
+            const res = await fetch(getApiUrl('/api/merchant/invite-code'), {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            if (res.ok) {
+                const data = await res.json()
+                setInviteCode(data.invite_code)
+                setTimeLeft(120) // 2 minutes
+            }
+        } catch (err) {
+            console.error('Generate invite error:', err)
+        } finally {
+            setGeneratingInvite(false)
+        }
+    }
+
+    useEffect(() => {
+        if (timeLeft > 0) {
+            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+            return () => clearTimeout(timer)
+        } else {
+            setInviteCode(null)
+        }
+    }, [timeLeft])
 
     return (
         <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: 100 }}>
@@ -56,9 +87,31 @@ function MerchantPage() {
             )}
 
             <div style={{ padding: '0 20px', marginBottom: 20 }}>
-                <button onClick={() => navigate('/add-product')} className="btn btn-primary btn-full">
-                    <Plus size={18} /> Mahsulot Qo'shish
-                </button>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <button onClick={() => navigate('/add-product')} className="btn btn-primary" style={{ flex: 2, gap: 10 }}>
+                        <Plus size={18} /> Mahsulot Qo'shish
+                    </button>
+                    <button 
+                        onClick={handleGenerateInvite} 
+                        className="btn btn-outline" 
+                        style={{ flex: 1, gap: 6, fontSize: '0.8rem', padding: '0 10px', whiteSpace: 'nowrap' }} 
+                        disabled={generatingInvite || timeLeft > 0}
+                    >
+                        {timeLeft > 0 ? (
+                            <span style={{ fontWeight: 800 }}>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
+                        ) : (
+                            <><UserPlus size={16} /> Sotuvchi</>
+                        )}
+                    </button>
+                </div>
+                
+                {inviteCode && (
+                    <div className="fade-in" style={{ marginTop: 12, padding: 16, background: 'var(--active-primary-bg)', borderRadius: 16, border: '1px dashed var(--active-primary)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--active-primary)', fontWeight: 600, marginBottom: 4 }}>Sotuvchi qo'shish kodi:</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: 4, color: 'var(--active-primary)' }}>{inviteCode}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4 }}>Ushbu kodni 2 daqiqa ichida yangi sotuvchiga bering.</div>
+                    </div>
+                )}
             </div>
 
             <div style={{ padding: '0 20px' }}>

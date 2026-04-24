@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/bot/check-user/:tg_id — Check if user exists for bot re-login
 router.get('/check-user/:tg_id', async (req, res) => {

@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('./prisma');
 
 function startScheduler() {
     console.log('⏰ Starting order notification scheduler...');

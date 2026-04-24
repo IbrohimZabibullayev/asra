@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../App'
 import { CartContext } from '../context/CartContext'
+import { getApiUrl } from '../utils/api'
 import { Home, ShoppingBag, ClipboardList, User } from 'lucide-react'
 
 function BottomNav() {
@@ -16,9 +17,10 @@ function BottomNav() {
 
     useEffect(() => {
         if (!isMerchant || !token) return;
-        const fetchPending = async () => {
+        const fetchMerchantOrders = async () => {
+            if (!token) return;
             try {
-                const res = await fetch('/api/orders/merchant', {
+                const res = await fetch(getApiUrl('/api/orders/merchant'), {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -28,8 +30,8 @@ function BottomNav() {
                 }
             } catch (err) { }
         };
-        fetchPending();
-        const interval = setInterval(fetchPending, 15000);
+        fetchMerchantOrders();
+        const interval = setInterval(fetchMerchantOrders, 15000);
         return () => clearInterval(interval);
     }, [isMerchant, token]);
 

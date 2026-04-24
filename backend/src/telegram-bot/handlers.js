@@ -11,7 +11,7 @@ function generateCode() {
 }
 
 // Helper: Send Order Notification with Geolocation options
-async function sendOrderNotification(bot, chatId, tgId) {
+async function sendOrderNotification(bot, chatId, tgId, customerId) {
     const user = await prisma.user.findUnique({ where: { tg_id: String(tgId) } });
     
     let message = "🔔 *Yangi buyurtma!* \n\nSizga yangi buyurtma tushdi. Mijozga mahsulotni yetkazib berish yoki olib ketish uchun lokatsiya yuborishingiz kerak.";
@@ -20,12 +20,12 @@ async function sendOrderNotification(bot, chatId, tgId) {
     if (user && user.latitude && user.longitude) {
         message += "\n\nSizda saqlangan lokatsiya mavjud. Uni yuborishni xohlaysizmi yoki yangisini?";
         keyboard = [
-            [{ text: "✅ Avvalgi lokatsiyani yuborish", callback_data: `send_saved_location` }],
-            [{ text: "🔄 Yangi lokatsiya yuborish", callback_data: "request_new_location" }]
+            [{ text: "✅ Avvalgi lokatsiyani yuborish", callback_data: `send_saved_location:${customerId}` }],
+            [{ text: "🔄 Yangi lokatsiya yuborish", callback_data: `request_new_location:${customerId}` }]
         ];
     } else {
         keyboard = [
-            [{ text: "📍 Mijozga lokatsiya yuborish", callback_data: "request_new_location" }]
+            [{ text: "📍 Mijozga lokatsiya yuborish", callback_data: `request_new_location:${customerId}` }]
         ];
     }
 
@@ -131,8 +131,9 @@ function setupHandlers(bot) {
 
         if (data === 'get_code') {
             await handleGetCode(bot, chatId, tgId, callbackQuery.id, callbackQuery.from.first_name);
-        } else if (data === 'request_new_location') {
-            userStates.set(chatId, { step: 'awaiting_location' });
+        } else if (data.startsWith('request_new_location')) {
+            const customerId = data.split(':')[1];
+            userStates.set(chatId, { step: 'awaiting_location', customerId });
             await bot.answerCallbackQuery(callbackQuery.id);
             await bot.sendMessage(chatId, "📍 Iltimos, mijozga yubormoqchi bo'lgan lokatsiyangizni yuboring (Telegram'ning 'Location' funksiyasidan foydalaning):", {
                 reply_markup: {
@@ -141,14 +142,21 @@ function setupHandlers(bot) {
                     one_time_keyboard: true
                 }
             });
-        } else if (data === 'send_saved_location') {
+        } else if (data.startsWith('send_saved_location')) {
+            const customerId = data.split(':')[1];
             const user = await prisma.user.findUnique({ where: { tg_id: tgId } });
             if (user && user.latitude && user.longitude) {
                 await bot.answerCallbackQuery(callbackQuery.id, { text: "Lokatsiya yuborilmoqda..." });
-                // In a real scenario, we'd send this to the customer. 
-                // For now, we show it back to the seller to confirm.
-                await bot.sendLocation(chatId, user.latitude, user.longitude);
+                
+                // Forward to customer
+                if (customerId) {
+                    await bot.sendMessage(customerId, `📍 Sotuvchi *${user.store_name || user.full_name}* o'z lokatsiyasini yubordi:`);
+                    await bot.sendLocation(customerId, user.latitude, user.longitude);
+                }
+
                 await bot.sendMessage(chatId, "✅ Saqlangan lokatsiya mijozga yuborildi!");
+                // Also show it back for visual confirmation
+                await bot.sendLocation(chatId, user.latitude, user.longitude);
             } else {
                 await bot.answerCallbackQuery(callbackQuery.id, { text: "Xatolik: Lokatsiya topilmadi", show_alert: true });
             }
@@ -267,32 +275,44 @@ function setupHandlers(bot) {
 
                 userStates.delete(chatId);
             }
-            // Handle location sharing
-            if (msg.location && state && state.step === 'awaiting_location') {
-                const { latitude, longitude } = msg.location;
+            // Handle location sharing & Universal Forwarding
+            if (state && state.step === 'awaiting_location') {
                 const tgId = String(msg.from.id);
+                const customerId = state.customerId;
+                const user = await prisma.user.findUnique({ where: { tg_id: tgId } });
 
-                await prisma.user.update({
-                    where: { tg_id: tgId },
-                    data: { latitude, longitude }
-                });
+                if (msg.text === "❌ Bekor qilish") {
+                    userStates.delete(chatId);
+                    return bot.sendMessage(chatId, "Amal bekor qilindi.", {
+                        reply_markup: { remove_keyboard: true }
+                    });
+                }
 
-                await bot.sendMessage(chatId, "✅ Lokatsiya muvaffaqiyatli saqlandi va mijozga yuborildi!", {
+                // 1. If it's a location, update user profile
+                if (msg.location) {
+                    await prisma.user.update({
+                        where: { tg_id: tgId },
+                        data: { latitude: msg.location.latitude, longitude: msg.location.longitude }
+                    });
+                }
+
+                // 2. Universal Forwarding to customer
+                if (customerId) {
+                    try {
+                        await bot.sendMessage(customerId, `📩 *Sotuvchidan yangi xabar:* \n(Do'kon: ${user.store_name || user.full_name})`, { parse_mode: 'Markdown' });
+                        // Copy the exact message (location, photo, video, text, etc.) to the customer
+                        await bot.copyMessage(customerId, chatId, msg.message_id);
+                    } catch (forwardErr) {
+                        console.error('Forwarding to customer failed:', forwardErr.message);
+                    }
+                }
+
+                await bot.sendMessage(chatId, "✅ Ma'lumot mijozga yuborildi!", {
                     reply_markup: { remove_keyboard: true }
                 });
-                
-                // Show the location back for confirmation
-                await bot.sendLocation(chatId, latitude, longitude);
 
                 userStates.delete(chatId);
                 return;
-            }
-
-            if (msg.text === "❌ Bekor qilish" && state && state.step === 'awaiting_location') {
-                userStates.delete(chatId);
-                return bot.sendMessage(chatId, "Amal bekor qilindi.", {
-                    reply_markup: { remove_keyboard: true }
-                });
             }
         } catch (err) {
             console.error('Bot onboarding error:', err);

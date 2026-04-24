@@ -7,19 +7,117 @@ const { authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// POST /api/verify — Match referral code, verify user, return JWT
+// Helper to verify Telegram InitData
+function verifyTelegramInitData(initData) {
+    if (!initData) return null;
+    try {
+        const BOT_TOKEN = process.env.BOT_TOKEN;
+        const urlParams = new URLSearchParams(initData);
+        const hash = urlParams.get('hash');
+        urlParams.delete('hash');
+        urlParams.sort();
+        let dataCheckString = '';
+        for (const [key, value] of urlParams.entries()) {
+            dataCheckString += `${key}=${value}\n`;
+        }
+        dataCheckString = dataCheckString.slice(0, -1);
+        const secretKey = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
+        const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+        if (calculatedHash !== hash) return null;
+        const userDataString = urlParams.get('user');
+        return JSON.parse(userDataString);
+    } catch (e) {
+        return null;
+    }
+}
+
+// POST /api/verify — Match referral code OR invite code
 router.post('/verify', async (req, res) => {
     try {
-        const { code } = req.body;
-        console.log(`[Verify] Attempting code: ${code}`);
+        const { code, intendedRole, initData } = req.body;
+        console.log(`[Verify] Attempting code: ${code}, Role: ${intendedRole}`);
 
         if (!code || code.length !== 6) {
             return res.status(400).json({ error: 'Noto\'g\'ri kod formati' });
         }
 
-        const user = await prisma.user.findUnique({
+        // 1. Try to find as a regular referral code (Login/Registration)
+        let user = await prisma.user.findUnique({
             where: { referral_code: code }
         });
+
+        // 2. If not found, try to find as an invite code (Add Seller)
+        if (!user) {
+            const parentMerchant = await prisma.user.findUnique({
+                where: { invite_code: code }
+            });
+
+            if (parentMerchant) {
+                // Check invite code expiry
+                if (parentMerchant.invite_code_expires_at && new Date() > new Date(parentMerchant.invite_code_expires_at)) {
+                    return res.status(400).json({ error: 'Taklif kodi muddati tugagan (2 daqiqa).' });
+                }
+
+                // We need to know WHO is using this invite code
+                const tgUser = verifyTelegramInitData(initData);
+                if (!tgUser) {
+                    return res.status(401).json({ error: 'Taklif kodini ishlatish uchun Telegram orqali kiring' });
+                }
+
+                const tgId = String(tgUser.id);
+
+                // Link current user to parent merchant
+                user = await prisma.user.upsert({
+                    where: { tg_id: tgId },
+                    update: {
+                        parent_merchant_id: parentMerchant.tg_id,
+                        role: 'MERCHANT',
+                        merchant_status: 'APPROVED',
+                        is_verified: true,
+                        status: 'ACTIVE',
+                        store_name: parentMerchant.store_name,
+                        store_address: parentMerchant.store_address,
+                        store_logo: parentMerchant.store_logo,
+                        store_description: parentMerchant.store_description,
+                        region: parentMerchant.region,
+                        district: parentMerchant.district,
+                        business_type: parentMerchant.business_type,
+                        inn: parentMerchant.inn,
+                        company_name: parentMerchant.company_name,
+                        responsible_person: parentMerchant.responsible_person
+                    },
+                    create: {
+                        tg_id: tgId,
+                        full_name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Sotuvchi',
+                        username: tgUser.username || null,
+                        parent_merchant_id: parentMerchant.tg_id,
+                        role: 'MERCHANT',
+                        merchant_status: 'APPROVED',
+                        is_verified: true,
+                        status: 'ACTIVE',
+                        store_name: parentMerchant.store_name,
+                        store_address: parentMerchant.store_address,
+                        store_logo: parentMerchant.store_logo,
+                        store_description: parentMerchant.store_description,
+                        region: parentMerchant.region,
+                        district: parentMerchant.district,
+                        business_type: parentMerchant.business_type,
+                        inn: parentMerchant.inn,
+                        company_name: parentMerchant.company_name,
+                        responsible_person: parentMerchant.responsible_person,
+                        referral_code: Math.floor(100000 + Math.random() * 900000).toString()
+                    }
+                });
+
+                const token = jwt.sign(
+                    { userId: user.id, tgId: user.tg_id },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '30d' }
+                );
+
+                return res.json({ token, user: sanitizeUser(user), message: `Tabriklaymiz! Siz "${parentMerchant.store_name}" do'koniga sotuvchi sifatida qo'shildingiz.` });
+            }
+        }
 
         if (!user) {
             return res.status(404).json({ error: 'Kod topilmadi' });
@@ -27,6 +125,14 @@ router.post('/verify', async (req, res) => {
 
         if (user.status === 'BLOCKED') {
             return res.status(403).json({ error: 'Sizning hisobingiz admin tomonidan bloklangan' });
+        }
+
+        // VALIDATION: If logging in as merchant, check if shop exists
+        if (intendedRole === 'MERCHANT') {
+            const hasShop = user.role === 'MERCHANT' || (user.store_name && user.store_name.length > 0);
+            if (!hasShop) {
+                return res.status(404).json({ error: 'Do\'kon topilmadi. Qaytadan do\'kon oching.' });
+            }
         }
 
         // Check expiry
@@ -57,11 +163,11 @@ router.post('/verify', async (req, res) => {
         }
 
         const isWaitlist = process.env.WAITLIST_MODE === 'true';
-        
+
         const updatedUser = await prisma.user.update({
             where: { id: user.id },
-            data: { 
-                is_verified: true, 
+            data: {
+                is_verified: true,
                 status: 'ACTIVE',
                 ...(isWaitlist ? { is_waitlisted: true } : {})
             }
@@ -178,6 +284,37 @@ router.post('/switch-role', authMiddleware, async (req, res) => {
     }
 });
 
+// POST /api/merchant/invite-code — Generate/get invite code for adding sellers
+router.post('/merchant/invite-code', authMiddleware, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.userId } });
+
+        if (!user || user.role !== 'MERCHANT') {
+            return res.status(403).json({ error: 'Faqat do\'kon egalari sotuvchi qo\'sha oladi' });
+        }
+
+        // Generate new 6-digit code
+        const invite_code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires_at = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                invite_code,
+                invite_code_expires_at: expires_at
+            }
+        });
+
+        res.json({
+            invite_code: updatedUser.invite_code,
+            expires_at: updatedUser.invite_code_expires_at
+        });
+    } catch (err) {
+        console.error('Invite code generation error:', err);
+        res.status(500).json({ error: 'Server xatosi' });
+    }
+});
+
 function sanitizeUser(user) {
     return {
         id: user.id,
@@ -194,7 +331,10 @@ function sanitizeUser(user) {
         store_description: user.store_description,
         store_address: user.store_address,
         is_waitlisted: user.is_waitlisted,
-        referral_code_expires_at: user.referral_code_expires_at
+        referral_code_expires_at: user.referral_code_expires_at,
+        invite_code: user.invite_code,
+        invite_code_expires_at: user.invite_code_expires_at,
+        parent_merchant_id: user.parent_merchant_id
     };
 }
 

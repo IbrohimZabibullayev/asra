@@ -1,5 +1,5 @@
-import { useState, useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useContext, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { getApiUrl } from '../utils/api'
 import { Apple, CheckCircle2 } from 'lucide-react'
 import { AuthContext } from '../App'
@@ -11,6 +11,8 @@ function VerifyPage({ onVerify }) {
     const [success, setSuccess] = useState('')
     const { globalWaitlistMode } = useContext(AuthContext)
     const navigate = useNavigate()
+    const location = useLocation()
+    const intendedRole = location.state?.intendedRole
 
     async function handleSubmit(e) {
         e.preventDefault()
@@ -24,10 +26,11 @@ function VerifyPage({ onVerify }) {
 
         setLoading(true)
         try {
+            const initData = window.Telegram?.WebApp?.initData || ''
             const res = await fetch(getApiUrl('/api/verify'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
+                body: JSON.stringify({ code, intendedRole, initData })
             })
 
             const data = await res.json()
